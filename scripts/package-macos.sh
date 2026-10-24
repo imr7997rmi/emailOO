@@ -48,7 +48,9 @@ python3 "$project_dir/scripts/stage-pdfium.py" \
   --licenses-destination "$app_dir/Contents/Resources/Licenses/PDFium"
 chmod 0755 "$app_dir/Contents/Frameworks/libpdfium.dylib"
 
-icon_source="$project_dir/resources/app-icon/flectar-mail-masked.png"
+# macOS icons keep a transparent margin (824 px body on a 1024 px canvas,
+# as in Apple's template); the full-bleed artwork looks larger in the Dock.
+icon_source="$project_dir/resources/app-icon/flectar-mail-macos.png"
 iconset_dir="$output_dir/FlectarMail.iconset"
 rm -rf "$iconset_dir"
 mkdir -p "$iconset_dir"
