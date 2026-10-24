@@ -20,7 +20,7 @@ import { TabsUi } from "../components/workspace-navigation.slint";
 import { AccountProfilePicker, ProfileColorChoice, ProfileMemberChoice, ProfilePalette } from "../components/profile-controls.slint";
 import { RuntimeColorPicker, ThemeEditor } from "../components/theme-editor.slint";
 import { TypeScale } from "../typography.slint";
-import { AppTheme, LayoutMetrics, SettingsIconPalette, ServiceIconPalette } from "../design-system.slint";
+import { AppTheme, LayoutMetrics, SettingsIconPalette, ServiceIconPalette, MotionSettings } from "../design-system.slint";
 import { CompactPageHeader, WorkspaceSidebarSurface } from "../components/workspace-layout.slint";
 
 // Use the same focusable controls in both account-card layouts.
@@ -1102,6 +1102,19 @@ export component SettingsDialog inherits Rectangle {
                                         toggled(checked) => {
                                             root.show_avatars = !checked;
                                             root.save_avatar_visibility(root.show_avatars);
+                                        }
+                                    }
+                                    Rectangle { height: 1px; background: root.border-subtle; }
+                                    SettingsSwitchRow {
+                                        compact: root.compact;
+                                        title: @tr("Reduce motion");
+                                        description: @tr("Change hover colors, panels and tabs instantly instead of animating them.");
+                                        checked: !MotionSettings.enabled;
+                                        title-color: root.body-text;
+                                        description-color: root.faint-text;
+                                        toggled(checked) => {
+                                            MotionSettings.enabled = !checked;
+                                            MotionSettings.save(MotionSettings.enabled);
                                         }
                                     }
                                     Rectangle { height: 1px; background: root.border-subtle; }
@@ -2527,7 +2540,7 @@ export component SettingsDialog inherits Rectangle {
                 z: 209;
                 background: #00000055;
                 opacity: root.compact-nav-open ? 1 : 0;
-                animate opacity { duration: 180ms; easing: ease-out; }
+                animate opacity { duration: MotionSettings.enabled ? 180ms : 0ms; easing: ease-out; }
                 TouchArea {
                     enabled: root.compact-nav-open;
                     accessible-role: button;
@@ -2547,9 +2560,9 @@ export component SettingsDialog inherits Rectangle {
                 drop-shadow-blur: root.compact-nav-open ? 24px : 0px;
                 drop-shadow-offset-x: 6px;
                 drop-shadow-color: #00000035;
-                animate x { duration: 260ms; easing: spring(0.08); }
-                animate opacity { duration: 180ms; easing: ease-out; }
-                animate drop-shadow-blur { duration: 180ms; easing: ease-out; }
+                animate x { duration: MotionSettings.enabled ? 260ms : 0ms; easing: spring(0.08); }
+                animate opacity { duration: MotionSettings.enabled ? 180ms : 0ms; easing: ease-out; }
+                animate drop-shadow-blur { duration: MotionSettings.enabled ? 180ms : 0ms; easing: ease-out; }
                 VerticalBox {
                     padding-top: 18px;
                     padding-right: 12px;

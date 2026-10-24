@@ -1,5 +1,5 @@
 import { ScrollView } from "std-widgets.slint";
-import { AppTheme, LayoutMetrics, ThemeUtilities } from "../design-system.slint";
+import { AppTheme, LayoutMetrics, ThemeUtilities, MotionSettings } from "../design-system.slint";
 import { FocusVisibleScope } from "focus-visible-scope.slint";
 import { TypeScale } from "../typography.slint";
 
@@ -163,7 +163,7 @@ export component Switch inherits Rectangle {
     border-width: switch-focus.focus-visible ? 2px : 0px;
     border-color: AppTheme.heading;
     opacity: root.enabled ? 1 : 0.45;
-    animate background { duration: 140ms; easing: ease-out; }
+    animate background { duration: MotionSettings.enabled ? 140ms : 0ms; easing: ease-out; }
 
     Rectangle {
         x: root.checked ? parent.width - self.width - 3px : 3px;
@@ -172,7 +172,7 @@ export component Switch inherits Rectangle {
         height: 16px;
         border-radius: 8px;
         background: white;
-        animate x { duration: 180ms; easing: spring(0.18); }
+        animate x { duration: MotionSettings.enabled ? 180ms : 0ms; easing: spring(0.18); }
     }
 
     switch-focus := FocusVisibleScope {
@@ -394,7 +394,7 @@ export component IconButton inherits Rectangle {
     border-width: keyboard.focus-visible ? 2px : 0px;
     border-color: AppTheme.accent;
     opacity: root.interactive ? 1 : 0.42;
-    animate background { duration: 120ms; easing: ease-out; }
+    animate background { duration: MotionSettings.enabled ? 120ms : 0ms; easing: ease-out; }
     accessible-role: button;
     accessible-label: root.tooltip-text;
     accessible-action-default => {
@@ -412,7 +412,7 @@ export component IconButton inherits Rectangle {
         colorize: root.primary ? ThemeUtilities.contrasting-foreground(root.fill-color) : root.icon-color;
         image-fit: contain;
         accessible-role: none;
-        animate y { duration: 140ms; easing: spring(0); }
+        animate y { duration: MotionSettings.enabled ? 140ms : 0ms; easing: spring(0); }
     }
 
     keyboard := FocusVisibleScope {

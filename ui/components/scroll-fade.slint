@@ -1,3 +1,4 @@
+import { MotionSettings } from "../design-system.slint";
 // A shared, non-interactive overlay for scrollable list surfaces. Consumers
 // decide when each edge is active from their viewport position, while this
 // component keeps the visual treatment identical across workspaces.
@@ -25,7 +26,7 @@ export component ScrollFade inherits Rectangle {
             root.surface-color.with-alpha(0) 100%
         );
         opacity: root.show-top ? 1 : 0;
-        animate opacity { duration: 140ms; easing: ease-out; }
+        animate opacity { duration: MotionSettings.enabled ? 140ms : 0ms; easing: ease-out; }
     }
 
     Rectangle {
@@ -40,6 +41,6 @@ export component ScrollFade inherits Rectangle {
             root.surface-color 100%
         );
         opacity: root.show-bottom ? 1 : 0;
-        animate opacity { duration: 140ms; easing: ease-out; }
+        animate opacity { duration: MotionSettings.enabled ? 140ms : 0ms; easing: ease-out; }
     }
 }

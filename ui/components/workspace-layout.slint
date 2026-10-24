@@ -105,7 +105,7 @@ export component CollapsibleWorkspaceSidebar inherits WorkspaceSidebarSurface {
     width: root.animated-width;
     clip: true;
 
-    animate animated-width { duration: 220ms; easing: spring(0); }
+    animate animated-width { duration: MotionSettings.enabled ? 220ms : 0ms; easing: spring(0); }
 }
 
 // A one-pixel divider with a larger, invisible interaction target. The
@@ -140,7 +140,7 @@ export component WorkspacePaneResizeHandle inherits Rectangle {
 
     private property <color> line-color: resize-hit.pressed || resize-hit.has-hover || resize-focus.focus-visible
         ? root.active-color : root.divider-color;
-    animate line-color { duration: 150ms; easing: ease-out; }
+    animate line-color { duration: MotionSettings.enabled ? 150ms : 0ms; easing: ease-out; }
 
     width: LayoutMetrics.divider-width;
     horizontal-stretch: 0;

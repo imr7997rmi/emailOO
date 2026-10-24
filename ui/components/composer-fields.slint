@@ -1,3 +1,4 @@
+import { MotionSettings } from "../design-system.slint";
 import { HorizontalBox } from "std-widgets.slint";
 import { AccountRow, ComposeContact } from "../models.slint";
 import { Avatar } from "avatar.slint";
@@ -136,7 +137,7 @@ export component ComposerFromRow inherits Rectangle {
                     image-fit: contain;
                     transform-rotation: account-popup.is-open ? 180deg : 0deg;
                     accessible-role: none;
-                    animate transform-rotation { duration: 120ms; }
+                    animate transform-rotation { duration: MotionSettings.enabled ? 120ms : 0ms; }
                 }
 
                 account-focus := FocusScope {

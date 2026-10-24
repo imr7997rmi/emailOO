@@ -45,6 +45,8 @@ export global LayoutMetrics {
 // without changing the motion users see in the application.
 export global MotionSettings {
     in-out property <bool> enabled: true;
+    // Persists the Appearance switch; registered by src/motion_preferences.rs.
+    callback save(bool);
 }
 
 // Mail actions and their matching sidebar destinations share one semantic

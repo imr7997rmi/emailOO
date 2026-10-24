@@ -53,6 +53,7 @@ mod remote;
 mod renderer;
 mod renderer_input_controller;
 mod renderer_preferences;
+mod motion_preferences;
 mod retained_model;
 mod rich_compose;
 mod settings_controller;
@@ -1591,6 +1592,7 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
         let query = query.to_string().trim().to_lowercase();
         query.is_empty() || haystack.to_string().to_lowercase().contains(&query)
     });
+    motion_preferences::register(&app, platform.paths.data_dir.join("motion.json"));
     renderer_preferences::register(
         &app,
         renderer_preference_path,
