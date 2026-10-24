@@ -12,6 +12,10 @@ use flectar_mail_core::models::{
     MIN_WORKSPACE_LIST_PANE_WIDTH, MailExport, PortableAccountConfig, Settings,
     normalized_workspace_list_pane_width,
 };
+use flectar_mail_core::models::{
+    AccountConfig as PortableSourceAccount, SenderIdentity, SenderIdentitySource, Signature,
+    SignatureDefaults,
+};
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
@@ -129,6 +133,163 @@ fn portable_mail_profiles(
         }
     }
     Ok(Some(profiles))
+}
+
+/// A signature in a portable backup. Accounts are named by email because
+/// account ids differ between devices; `id` only links default choices to
+/// signatures inside the same backup.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PortableSignature {
+    account_email: String,
+    id: String,
+    name: String,
+    html: String,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PortableSignatureDefaults {
+    #[serde(default)]
+    new_id: Option<String>,
+    #[serde(default)]
+    reply_id: Option<String>,
+}
+
+/// A From address the user declared by hand. Provider identities are not
+/// exported: the server lists them again after sign-in.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PortableSenderIdentity {
+    account_email: String,
+    email: String,
+    #[serde(default)]
+    display_name: Option<String>,
+    #[serde(default)]
+    reply_to_email: Option<String>,
+}
+
+#[derive(Debug, Default, PartialEq, Eq)]
+struct PortableComposeData {
+    signatures: Vec<PortableSignature>,
+    signature_defaults: HashMap<String, PortableSignatureDefaults>,
+    sender_identities: Vec<PortableSenderIdentity>,
+}
+
+fn export_compose_data(
+    settings: &Settings,
+    configs: &[PortableSourceAccount],
+    identities: &HashMap<i64, Vec<SenderIdentity>>,
+) -> serde_json::Map<String, serde_json::Value> {
+    let emails = configs
+        .iter()
+        .map(|account| (account.id, account.email.clone()))
+        .collect::<HashMap<_, _>>();
+    let signatures = settings
+        .signature_list
+        .iter()
+        .filter_map(|signature| {
+            emails
+                .get(&signature.account_id)
+                .map(|email| PortableSignature {
+                    account_email: email.clone(),
+                    id: signature.id.clone(),
+                    name: signature.name.clone(),
+                    html: signature.html.clone(),
+                })
+        })
+        .collect::<Vec<_>>();
+    let signature_defaults = settings
+        .signature_defaults
+        .iter()
+        .filter_map(|(account_id, defaults)| {
+            let email = emails.get(&account_id.parse::<i64>().ok()?)?;
+            Some((
+                email.clone(),
+                PortableSignatureDefaults {
+                    new_id: defaults.new_id.clone(),
+                    reply_id: defaults.reply_id.clone(),
+                },
+            ))
+        })
+        .collect::<HashMap<_, _>>();
+    let sender_identities = configs
+        .iter()
+        .flat_map(|account| {
+            identities
+                .get(&account.id)
+                .into_iter()
+                .flatten()
+                .filter(|identity| identity.source == SenderIdentitySource::Manual)
+                .map(|identity| PortableSenderIdentity {
+                    account_email: account.email.clone(),
+                    email: identity.email.clone(),
+                    display_name: identity.display_name.clone(),
+                    reply_to_email: identity.reply_to_email.clone(),
+                })
+        })
+        .collect::<Vec<_>>();
+    let mut data = serde_json::Map::new();
+    data.insert("signatures".into(), serde_json::json!(signatures));
+    data.insert("signatureDefaults".into(), serde_json::json!(signature_defaults));
+    data.insert("senderIdentities".into(), serde_json::json!(sender_identities));
+    data
+}
+
+fn portable_compose_data(
+    backup: &serde_json::Value,
+    imported_emails: &HashSet<String>,
+) -> Result<PortableComposeData, String> {
+    let Some(preferences) = backup.get("preferences") else {
+        return Ok(PortableComposeData::default());
+    };
+    let mut data = PortableComposeData::default();
+    if let Some(value) = preferences.get("signatures") {
+        data.signatures = serde_json::from_value(value.clone())
+            .map_err(|error| format!("invalid signature data: {error}"))?;
+    }
+    if let Some(value) = preferences.get("signatureDefaults") {
+        data.signature_defaults = serde_json::from_value(value.clone())
+            .map_err(|error| format!("invalid default signature data: {error}"))?;
+    }
+    if let Some(value) = preferences.get("senderIdentities") {
+        data.sender_identities = serde_json::from_value(value.clone())
+            .map_err(|error| format!("invalid sender identity data: {error}"))?;
+    }
+    if data.signatures.len() > 2000 || data.sender_identities.len() > 2000 {
+        return Err("backup contains too many signatures or sender identities".into());
+    }
+    let known = |email: &str| imported_emails.contains(&email.trim().to_ascii_lowercase());
+    if let Some(signature) = data.signatures.iter().find(|s| !known(&s.account_email)) {
+        return Err(format!(
+            "signature {:?} references an account outside the backup",
+            signature.name
+        ));
+    }
+    if let Some(identity) = data.sender_identities.iter().find(|i| !known(&i.account_email)) {
+        return Err(format!(
+            "sender identity {:?} references an account outside the backup",
+            identity.email
+        ));
+    }
+    for (email, defaults) in &data.signature_defaults {
+        if !known(email) {
+            return Err(format!(
+                "default signatures reference an account outside the backup: {email:?}"
+            ));
+        }
+        for id in [&defaults.new_id, &defaults.reply_id].into_iter().flatten() {
+            let found = data.signatures.iter().any(|signature| {
+                &signature.id == id && signature.account_email.trim().eq_ignore_ascii_case(email.trim())
+            });
+            if !found {
+                return Err(format!(
+                    "a default signature of {email:?} is missing from the backup"
+                ));
+            }
+        }
+    }
+    Ok(data)
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -386,6 +547,7 @@ pub(super) fn restore_account_backup(
         let portable_colors = portable_account_colors(&backup, &imported_emails)?;
         let has_portable_colors = portable_colors.is_some();
         let portable_colors = portable_colors.unwrap_or_default();
+        let compose_data = portable_compose_data(&backup, &imported_emails)?;
 
         let mut settings = runtime.block_on(core.load_settings())?;
         let has_preferences = backup.get("preferences").is_some();
@@ -576,6 +738,75 @@ pub(super) fn restore_account_backup(
                         core.assign_account_profile(*account_id, Some(saved.id.clone())),
                     )?;
                 }
+            }
+        }
+        // Signatures, their defaults and manual sender identities. A rejected
+        // entry (over a limit, or a policy the server enforces) is skipped so
+        // the rest of the restore still applies.
+        let full_core = core.account_preferences_core();
+        let mut restored_ids = HashMap::<(i64, String), String>::new();
+        for signature in compose_data.signatures {
+            let Some(&account_id) =
+                account_ids.get(&signature.account_email.trim().to_ascii_lowercase())
+            else {
+                continue;
+            };
+            let current = runtime
+                .block_on(full_core.get_settings())
+                .map_err(|error| error.to_string())?;
+            let existing_id = current
+                .signature_list
+                .iter()
+                .find(|candidate| {
+                    candidate.account_id == account_id
+                        && candidate.name.trim().eq_ignore_ascii_case(signature.name.trim())
+                })
+                .map(|candidate| candidate.id.clone())
+                .unwrap_or_default();
+            let backup_id = signature.id;
+            match runtime.block_on(full_core.save_signature(Signature {
+                id: existing_id,
+                account_id,
+                name: signature.name,
+                html: signature.html,
+            })) {
+                Ok(saved) => {
+                    restored_ids.insert((account_id, backup_id), saved.id);
+                }
+                Err(error) => tracing::warn!(%error, "skipped an imported signature"),
+            }
+        }
+        for (email, defaults) in compose_data.signature_defaults {
+            let Some(&account_id) = account_ids.get(&email.trim().to_ascii_lowercase()) else {
+                continue;
+            };
+            let restored = |id: Option<String>| {
+                id.and_then(|id| restored_ids.get(&(account_id, id)).cloned())
+            };
+            let defaults = SignatureDefaults {
+                new_id: restored(defaults.new_id),
+                reply_id: restored(defaults.reply_id),
+                ..Default::default()
+            };
+            if let Err(error) =
+                runtime.block_on(full_core.set_signature_defaults(account_id, defaults))
+            {
+                tracing::warn!(%error, "skipped imported default signatures");
+            }
+        }
+        for identity in compose_data.sender_identities {
+            let Some(&account_id) =
+                account_ids.get(&identity.account_email.trim().to_ascii_lowercase())
+            else {
+                continue;
+            };
+            if let Err(error) = runtime.block_on(full_core.save_sender_identity(
+                account_id,
+                identity.email,
+                identity.display_name,
+                identity.reply_to_email,
+            )) {
+                tracing::warn!(%error, "skipped an imported sender identity");
             }
         }
         settings = runtime.block_on(core.load_settings())?;
@@ -1233,6 +1464,22 @@ pub(super) fn register_data_management_callbacks(
                 })
             })
             .unwrap_or_else(|| serde_json::json!({}));
+        let mut preferences = preferences;
+        if let (Some(core), Some(object)) = (core.as_ref(), preferences.as_object_mut()) {
+            let full_core = core.account_preferences_core();
+            if let Ok(settings) = runtime_for_backup.block_on(full_core.get_settings()) {
+                let identities = configs
+                    .iter()
+                    .filter_map(|account| {
+                        runtime_for_backup
+                            .block_on(full_core.list_sender_identities(account.id))
+                            .ok()
+                            .map(|list| (account.id, list))
+                    })
+                    .collect::<HashMap<_, _>>();
+                object.extend(export_compose_data(&settings, &configs, &identities));
+            }
+        }
         let accounts = configs
             .iter()
             .map(PortableAccountConfig::from)
@@ -1550,6 +1797,39 @@ pub(super) fn register_data_management_callbacks(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn portable_compose_data_requires_backup_accounts_and_known_default_ids() {
+        let emails = HashSet::from(["a@example.com".to_owned()]);
+        let valid = serde_json::json!({ "preferences": {
+            "signatures": [{ "accountEmail": "A@example.com", "id": "s1", "name": "Work", "html": "<p>Hi</p>" }],
+            "signatureDefaults": { "a@example.com": { "newId": "s1" } },
+            "senderIdentities": [{ "accountEmail": "a@example.com", "email": "alias@example.com" }]
+        }});
+        let data = portable_compose_data(&valid, &emails).unwrap();
+        assert_eq!(data.signatures.len(), 1);
+        assert_eq!(data.sender_identities.len(), 1);
+        assert_eq!(
+            data.signature_defaults["a@example.com"].new_id.as_deref(),
+            Some("s1")
+        );
+
+        let outside = serde_json::json!({ "preferences": {
+            "senderIdentities": [{ "accountEmail": "b@example.com", "email": "x@example.com" }]
+        }});
+        assert!(portable_compose_data(&outside, &emails).is_err());
+
+        let dangling = serde_json::json!({ "preferences": {
+            "signatureDefaults": { "a@example.com": { "replyId": "missing" } }
+        }});
+        assert!(portable_compose_data(&dangling, &emails).is_err());
+
+        let legacy = serde_json::json!({ "preferences": {} });
+        assert_eq!(
+            portable_compose_data(&legacy, &emails).unwrap(),
+            PortableComposeData::default()
+        );
+    }
+
     use super::*;
 
     #[test]
