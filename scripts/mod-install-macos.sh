@@ -25,6 +25,7 @@ bash "$project_dir/scripts/package-macos.sh" "$binary" "$staging" >/dev/null
 app="$staging/Flectar Mail.app"
 plist="$app/Contents/Info.plist"
 /usr/libexec/PlistBuddy \
+  -c "Set :CFBundleIdentifier com.flectar.mail.mods" \
   -c "Set :CFBundleName $app_name" \
   -c "Set :CFBundleDisplayName $app_name" \
   -c "Set :CFBundleShortVersionString $version mod" \
