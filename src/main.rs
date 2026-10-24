@@ -1586,7 +1586,12 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
         app.set_workspace_list_pane_width(width as f32);
     }
     window_chrome::register(&app, &runtime);
-    app.set_app_version(env!("CARGO_PKG_VERSION").into());
+    // Fork builds name themselves and the upstream base they were built on;
+    // FLECTAR_MOD_LABEL is set by the fork's build command.
+    app.set_app_version(match option_env!("FLECTAR_MOD_LABEL") {
+        Some(label) => format!("{} · {label}", env!("CARGO_PKG_VERSION")).into(),
+        None => env!("CARGO_PKG_VERSION").into(),
+    });
     app.on_settings_search_matches(|haystack, query| {
         let query = query.to_string().trim().to_lowercase();
         query.is_empty() || haystack.to_string().to_lowercase().contains(&query)
