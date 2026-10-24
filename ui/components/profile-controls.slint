@@ -1,6 +1,6 @@
 import { ScrollView } from "std-widgets.slint";
 import { AccountRow, MailProfileRow, ProfileMemberRow } from "../models.slint";
-import { AppTheme } from "../design-system.slint";
+import { AppTheme, MotionSettings } from "../design-system.slint";
 import { TypeScale } from "../typography.slint";
 import { Avatar } from "avatar.slint";
 import { Button } from "button.slint";
@@ -87,7 +87,7 @@ export component ProfileChoiceRow inherits FocusVisibleScope {
         border-color: AppTheme.accent;
         background: root.checked ? AppTheme.accent-pale
             : hit.has-hover ? AppTheme.control-bg : transparent;
-        animate background { duration: 100ms; easing: ease-out; }
+        animate background { duration: MotionSettings.enabled ? 100ms : 0ms; easing: ease-out; }
     }
     Rectangle {
         x: 14px;
@@ -160,7 +160,7 @@ export component ProfileActionRow inherits FocusVisibleScope {
         border-width: root.focus-visible ? 2px : 0px;
         border-color: AppTheme.accent;
         background: hit.has-hover ? AppTheme.control-bg : transparent;
-        animate background { duration: 100ms; easing: ease-out; }
+        animate background { duration: MotionSettings.enabled ? 100ms : 0ms; easing: ease-out; }
     }
     Image {
         x: 12px;
@@ -221,7 +221,7 @@ export component ProfileMemberChoice inherits FocusVisibleScope {
         border-width: root.focus-visible ? 2px : 0px;
         border-color: AppTheme.accent;
         background: hit.has-hover ? AppTheme.control-bg : transparent;
-        animate background { duration: 100ms; easing: ease-out; }
+        animate background { duration: MotionSettings.enabled ? 100ms : 0ms; easing: ease-out; }
     }
     Rectangle {
         x: 12px;

@@ -1,3 +1,4 @@
+import { MotionSettings } from "../design-system.slint";
 import { HorizontalBox } from "std-widgets.slint";
 import { TypeScale } from "../typography.slint";
 
@@ -30,7 +31,7 @@ export component ProviderButton inherits Rectangle {
             root.clicked();
         }
     }
-    animate background { duration: 150ms; }
+    animate background { duration: MotionSettings.enabled ? 150ms : 0ms; }
 
     HorizontalBox {
         padding-left: 16px;

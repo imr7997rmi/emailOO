@@ -320,7 +320,7 @@ export component MailListPane inherits FocusScope {
         list-keyboard.pointer-activated();
     }
 
-    animate bulk-toolbar-height { duration: 180ms; easing: spring(0); }
+    animate bulk-toolbar-height { duration: MotionSettings.enabled ? 180ms : 0ms; easing: spring(0); }
 
     pagination := InfiniteScrollController {
         active: true;
@@ -501,7 +501,7 @@ export component MailListPane inherits FocusScope {
                             checked: root.emails.length > 0 && root.selection-count == root.emails.length;
                             indeterminate: root.selection-count > 0 && root.selection-count < root.emails.length;
                             accessible-label: self.checked ? @tr("Clear selection") : @tr("Select all messages on this page");
-                            animate opacity { duration: 120ms; }
+                            animate opacity { duration: MotionSettings.enabled ? 120ms : 0ms; }
                             toggled(checked) => { root.set_all_emails_checked(checked); }
                         }
 
@@ -515,7 +515,7 @@ export component MailListPane inherits FocusScope {
                             height: LayoutMetrics.desktop-icon-button-size;
                             background: transparent;
                             opacity: root.selection-mode ? 1 : 0;
-                            animate opacity { duration: 120ms; }
+                            animate opacity { duration: MotionSettings.enabled ? 120ms : 0ms; }
 
                             ToolbarIconButton {
                                 x: 0px;
@@ -659,7 +659,7 @@ export component MailListPane inherits FocusScope {
                                 background: entry.is_header ? root.surface : mail-data.checked ? root.accent-soft : mail-data.selected ? root.selected-row : root.surface;
                                 border-width: !entry.is_header && entry.show_row && list-keyboard.focus-visible && root.keyboard-email-id == mail-data.id ? 2px : 0px;
                                 border-color: root.accent;
-                                animate opacity { duration: 120ms; }
+                                animate opacity { duration: MotionSettings.enabled ? 120ms : 0ms; }
                                 animate height { duration: 230ms; easing: spring(0); enabled: MotionSettings.enabled; }
                                 accessible-role: none;
 
@@ -1024,7 +1024,7 @@ export component MailListPane inherits FocusScope {
                                                 accessible-label: mail-data.checked
                                                     ? @tr("Deselect {}", mail-data.sender)
                                                     : @tr("Select {}", mail-data.sender);
-                                                animate opacity { duration: 120ms; }
+                                                animate opacity { duration: MotionSettings.enabled ? 120ms : 0ms; }
                                                 toggled(checked) => { root.set_email_checked(mail-data.id, checked); }
                                             }
                                         }

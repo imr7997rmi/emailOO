@@ -126,7 +126,7 @@ component MessageLoadingSkeleton inherits Rectangle {
     visible: root.active || self.opacity > 0;
     clip: true;
     opacity: root.active ? 1 : 0;
-    animate opacity { duration: 180ms; easing: ease-out; }
+    animate opacity { duration: MotionSettings.enabled ? 180ms : 0ms; easing: ease-out; }
 
     Rectangle {
         y: clamp(root.paint-top, 0px, root.height);
@@ -229,7 +229,7 @@ component ThreadMessageHeader inherits Rectangle {
     background: root.thread-interactive && header-hit.has-hover
         ? root.control-bg
         : root.selected ? transparent : root.control-bg.transparentize(0.35);
-    animate background { duration: 140ms; }
+    animate background { duration: MotionSettings.enabled ? 140ms : 0ms; }
     accessible-role: button;
     accessible-enabled: root.thread-interactive;
     accessible-label: @tr("Message from {}", root.outgoing ? @tr("You") : root.sender)
@@ -506,7 +506,7 @@ export component MailReadingPane inherits FocusScope {
     // navigation uses the active surface's height, including attachments.
     out property <length> email-scroll-document-height: root.message-document-height
         + root.message-actions-height + root.message-bottom-padding;
-    animate selected-header-y { duration: 240ms; easing: spring(0); }
+    animate selected-header-y { duration: MotionSettings.enabled ? 240ms : 0ms; easing: spring(0); }
     in property <color> accent;
     in property <color> accent-soft;
     in property <color> border;
@@ -1075,7 +1075,7 @@ export component MailReadingPane inherits FocusScope {
                         spacing: 0px;
                         opacity: 0.28 + root.content-reveal * 0.72;
                         animate opacity {
-                            duration: 190ms;
+                            duration: MotionSettings.enabled ? 190ms : 0ms;
                             easing: ease-out;
                             enabled: MotionSettings.enabled && root.content-reveal > 0;
                         }
@@ -1201,7 +1201,7 @@ export component MailReadingPane inherits FocusScope {
                                     x: -email-scroll.content-x + root.message-card-inset;
                                     y: row.index * root.thread-item-stride
                                         + (row.index > root.accordion-selected-index ? root.expanded-message-height : 0px);
-                                    animate y { duration: 240ms; easing: spring(0); }
+                                    animate y { duration: MotionSettings.enabled ? 240ms : 0ms; easing: spring(0); }
                                     width: max(0px, email-scroll.visible-width - 2 * root.message-card-inset);
                                     sender: row.sender;
                                     address: row.address;

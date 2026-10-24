@@ -6725,3 +6725,9 @@ msgstr "Restaurar"
 #: ui/window-chrome.slint:202 ui/window-chrome.slint:239
 msgid "Maximize"
 msgstr "Maximizar"
+
+msgid "Reduce motion"
+msgstr "Reducir animaciones"
+
+msgid "Change hover colors, panels and tabs instantly instead of animating them."
+msgstr "Cambia colores al pasar el ratón, paneles y pestañas al instante, sin animación."

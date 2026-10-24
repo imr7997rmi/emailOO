@@ -1,5 +1,5 @@
 import { HorizontalBox } from "std-widgets.slint";
-import { AppTheme, LayoutMetrics, ThemeUtilities } from "../design-system.slint";
+import { AppTheme, LayoutMetrics, ThemeUtilities, MotionSettings } from "../design-system.slint";
 import { TypeScale } from "../typography.slint";
 import { FocusVisibleScope } from "focus-visible-scope.slint";
 
@@ -41,7 +41,7 @@ export component Button inherits Rectangle {
         : root.selected ? AppTheme.accent : AppTheme.heading;
     background: root.fill-color;
     opacity: root.enabled ? 1 : 0.5;
-    animate background { duration: 120ms; easing: ease-out; }
+    animate background { duration: MotionSettings.enabled ? 120ms : 0ms; easing: ease-out; }
     accessible-role: button;
     accessible-label: root.text;
     accessible-action-default => {
@@ -52,7 +52,7 @@ export component Button inherits Rectangle {
 
     label-row := HorizontalBox {
         y: button-area.pressed ? 1px : 0px;
-        animate y { duration: 140ms; easing: spring(0); }
+        animate y { duration: MotionSettings.enabled ? 140ms : 0ms; easing: spring(0); }
         padding-left: 12px;
         padding-right: 12px;
         spacing: 7px;

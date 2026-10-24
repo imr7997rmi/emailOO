@@ -1,5 +1,5 @@
 import { TypeScale } from "../typography.slint";
-import { LayoutMetrics } from "../design-system.slint";
+import { LayoutMetrics, MotionSettings } from "../design-system.slint";
 
 // Navigation labels share the body type scale so OS text preferences apply.
 export global SidebarStyle {
@@ -24,5 +24,5 @@ export component SidebarRowSurface inherits Rectangle {
     border-radius: 6px;
     background: root.active ? root.active-background
         : root.hovered ? root.hover-background : root.idle-background;
-    animate background { duration: 120ms; }
+    animate background { duration: MotionSettings.enabled ? 120ms : 0ms; }
 }

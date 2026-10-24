@@ -50,12 +50,12 @@ export component WorkspaceListTransition inherits Rectangle {
         opacity: 0.24 + root.reveal-progress * 0.76;
 
         animate x {
-            duration: 220ms;
+            duration: MotionSettings.enabled ? 220ms : 0ms;
             easing: spring(0);
             enabled: MotionSettings.enabled && root.reveal-progress > 0;
         }
         animate opacity {
-            duration: 180ms;
+            duration: MotionSettings.enabled ? 180ms : 0ms;
             easing: ease-out;
             enabled: MotionSettings.enabled && root.reveal-progress > 0;
         }
