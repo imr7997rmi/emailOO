@@ -18,7 +18,7 @@ staging="$target_dir/macos-$profile"
 app_name="Flectar Mail Mods"
 
 version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project_dir/Cargo.toml" | head -1)"
-base="$(git -C "$project_dir" describe --tags main 2>/dev/null || echo unknown)"
+base="$(git -C "$project_dir" rev-parse --short main 2>/dev/null || echo unknown)"
 commit="$(git -C "$project_dir" rev-parse --short HEAD)"
 
 bash "$project_dir/scripts/package-macos.sh" "$binary" "$staging" >/dev/null
@@ -27,11 +27,11 @@ plist="$app/Contents/Info.plist"
 /usr/libexec/PlistBuddy \
   -c "Set :CFBundleName $app_name" \
   -c "Set :CFBundleDisplayName $app_name" \
-  -c "Set :CFBundleShortVersionString $version · imr7997rmi mod" \
-  -c "Set :CFBundleVersion $commit ($profile)" \
+  -c "Set :CFBundleShortVersionString $version mod" \
+  -c "Set :CFBundleVersion $commit" \
   "$plist"
 /usr/libexec/PlistBuddy -c "Delete :NSHumanReadableCopyright" "$plist" 2>/dev/null || true
-/usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string Mod by imr7997rmi · base $base" "$plist"
+/usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string imr7997rmi · base $base" "$plist"
 # A stable local signing identity keeps keychain access across rebuilds;
 # ad-hoc signatures change every build and macOS asks again per account.
 sign_id="${FLECTAR_SIGN_ID:-Flectar Mods Local}"
@@ -55,4 +55,7 @@ for destination in "$build_dir/$app_name.app" "/Applications/$app_name.app"; do
   codesign --verify --deep "$destination"
   echo "installed: $destination"
 done
-open -a "/Applications/$app_name.app"
+# Keep Launch Services on the /Applications copy only.
+lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+"$lsregister" -u "$build_dir/$app_name.app" >/dev/null 2>&1 || true
+open "/Applications/$app_name.app"
