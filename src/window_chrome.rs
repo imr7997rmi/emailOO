@@ -22,6 +22,7 @@ use slint::ComponentHandle;
 #[cfg(desktop)]
 use slint::winit_030::{EventResult, WinitWindowAccessor, winit};
 use std::cell::Cell;
+use std::{cell::RefCell, path::PathBuf, rc::Rc};
 
 #[cfg(linux_desktop)]
 mod activation;
@@ -205,6 +206,11 @@ fn register_desktop_events(app: &AppWindow) {
                     report_minimized(&app);
                 }
             }
+            // The platform reports one event per file; they are batched.
+            winit::event::WindowEvent::DroppedFile(path) => {
+                queue_dropped_file(path.clone());
+                return EventResult::PreventDefault;
+            }
             winit::event::WindowEvent::Occluded(_) => report_minimized(&app),
             // X11 may restore a window without another event; its first frame
             // is the earliest reliable signal.
@@ -217,6 +223,36 @@ fn register_desktop_events(app: &AppWindow) {
         }
         EventResult::Propagate
     });
+}
+
+type FileDropHandler = Rc<dyn Fn(Vec<PathBuf>)>;
+
+thread_local! {
+    static FILE_DROP_HANDLER: RefCell<Option<FileDropHandler>> = const { RefCell::new(None) };
+    static PENDING_DROPS: RefCell<Vec<PathBuf>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Receive the files dropped on the window. Each drop gesture is delivered
+/// as one batch on the UI thread.
+pub(crate) fn set_file_drop_handler(handler: impl Fn(Vec<PathBuf>) + 'static) {
+    FILE_DROP_HANDLER.with_borrow_mut(|slot| *slot = Some(Rc::new(handler)));
+}
+
+#[cfg(desktop)]
+fn queue_dropped_file(path: PathBuf) {
+    let first = PENDING_DROPS.with_borrow_mut(|pending| {
+        pending.push(path);
+        pending.len() == 1
+    });
+    if first {
+        slint::Timer::single_shot(std::time::Duration::ZERO, || {
+            let paths = PENDING_DROPS.with_borrow_mut(std::mem::take);
+            let handler = FILE_DROP_HANDLER.with_borrow(Clone::clone);
+            if let Some(handler) = handler {
+                handler(paths);
+            }
+        });
+    }
 }
 
 /// Forward the platform's minimized state to the window lifecycle. Wayland

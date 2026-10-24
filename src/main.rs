@@ -6276,59 +6276,29 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
             if documents.is_empty() {
                 return;
             }
-            let mut compose_files = files.borrow_mut();
-            let mut total_size = compose_files.iter().map(|file| file.size).sum::<u64>();
-            let mut added = 0usize;
-            let mut skipped = 0usize;
-            for document in documents {
-                let path = std::fs::canonicalize(document.path())
-                    .unwrap_or_else(|_| document.path().to_path_buf());
-                if compose_files.iter().any(|file| file.path == path) {
-                    skipped += 1;
-                    continue;
-                }
-                let Ok(metadata) = std::fs::metadata(&path) else {
-                    skipped += 1;
-                    continue;
-                };
-                if !metadata.is_file()
-                    || total_size.saturating_add(metadata.len()) > MAX_COMPOSE_ATTACHMENT_BYTES
-                {
-                    skipped += 1;
-                    continue;
-                }
-                let Some(filename) = path.file_name().map(|name| name.to_string_lossy().into_owned())
-                else {
-                    skipped += 1;
-                    continue;
-                };
-                total_size += metadata.len();
-                compose_files.push(ComposeFile {
-                    path,
-                    filename,
-                    size: metadata.len(),
-                    _import: Some(Rc::new(document)),
-                });
-                added += 1;
-            }
-            apply_compose_files(&app, &compose_files);
-            if skipped == 0 {
-                app.set_compose_notice(if added == 1 {
-                    UiMessage::plain("Added 1 attachment.")
-                } else {
-                    UiMessage::detail("Added {} attachments.", added)
-                });
-                app.set_compose_notice_is_error(false);
-            } else {
-                app.set_compose_notice(UiMessage::arguments(
-                    "Attachments added: {}. Skipped: {} (duplicate, unreadable, or over the 25 MB total limit).",
-                    added,
-                    skipped,
-                ));
-                app.set_compose_notice_is_error(added == 0);
-            }
+            add_compose_documents(&app, &files, documents);
         });
     });
+
+    // Files dropped on the window from Finder or a file manager are
+    // attached while the composer is open.
+    {
+        let app_weak = app.as_weak();
+        let files_for_drop = Rc::clone(&compose_files);
+        window_chrome::set_file_drop_handler(move |paths| {
+            let Some(app) = app_weak.upgrade() else {
+                return;
+            };
+            if !app.get_compose_open() {
+                return;
+            }
+            let documents = paths
+                .into_iter()
+                .map(documents::ImportedDocument::source)
+                .collect();
+            add_compose_documents(&app, &files_for_drop, documents);
+        });
+    }
 
     let app_weak = app.as_weak();
     let files_for_remove = Rc::clone(&compose_files);
@@ -8373,4 +8343,65 @@ mod tests {
 pub fn suspend_file_preview() {
     files_controller::suspend();
     attachment_controller::suspend();
+}
+
+/// Add picked or dropped documents to the open composer. Duplicates,
+/// unreadable entries and files past the total size limit are skipped and
+/// reported in the composer notice.
+fn add_compose_documents(
+    app: &AppWindow,
+    files: &RefCell<Vec<ComposeFile>>,
+    documents: Vec<documents::ImportedDocument>,
+) {
+    let mut compose_files = files.borrow_mut();
+    let mut total_size = compose_files.iter().map(|file| file.size).sum::<u64>();
+    let mut added = 0usize;
+    let mut skipped = 0usize;
+    for document in documents {
+        let path = std::fs::canonicalize(document.path())
+            .unwrap_or_else(|_| document.path().to_path_buf());
+        if compose_files.iter().any(|file| file.path == path) {
+            skipped += 1;
+            continue;
+        }
+        let Ok(metadata) = std::fs::metadata(&path) else {
+            skipped += 1;
+            continue;
+        };
+        if !metadata.is_file()
+            || total_size.saturating_add(metadata.len()) > MAX_COMPOSE_ATTACHMENT_BYTES
+        {
+            skipped += 1;
+            continue;
+        }
+        let Some(filename) = path.file_name().map(|name| name.to_string_lossy().into_owned())
+        else {
+            skipped += 1;
+            continue;
+        };
+        total_size += metadata.len();
+        compose_files.push(ComposeFile {
+            path,
+            filename,
+            size: metadata.len(),
+            _import: Some(Rc::new(document)),
+        });
+        added += 1;
+    }
+    apply_compose_files(&app, &compose_files);
+    if skipped == 0 {
+        app.set_compose_notice(if added == 1 {
+            UiMessage::plain("Added 1 attachment.")
+        } else {
+            UiMessage::detail("Added {} attachments.", added)
+        });
+        app.set_compose_notice_is_error(false);
+    } else {
+        app.set_compose_notice(UiMessage::arguments(
+            "Attachments added: {}. Skipped: {} (duplicate, unreadable, or over the 25 MB total limit).",
+            added,
+            skipped,
+        ));
+        app.set_compose_notice_is_error(added == 0);
+    }
 }
