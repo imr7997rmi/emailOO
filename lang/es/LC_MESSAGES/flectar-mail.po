@@ -6734,3 +6734,19 @@ msgstr "Cambia colores al pasar el ratón, paneles y pestañas al instante, sin 
 
 msgid "Export all"
 msgstr "Exportar todo"
+
+msgid "Export and import settings"
+msgstr "Exportar e importar configuración"
+
+msgid ""
+"Import from Thunderbird, K-9 Mail, or a backup, or export all your settings: "
+"one account, signatures, sender identities and app preferences."
+msgid_plural ""
+"Import from Thunderbird, K-9 Mail, or a backup, or export all your settings: "
+"{n} accounts, signatures, sender identities and app preferences."
+msgstr[0] ""
+"Importa desde Thunderbird, K-9 Mail o una copia de seguridad, o exporta toda "
+"tu configuración: la cuenta, firmas, identidades y preferencias del programa."
+msgstr[1] ""
+"Importa desde Thunderbird, K-9 Mail o una copia de seguridad, o exporta toda "
+"tu configuración: {n} cuentas, firmas, identidades y preferencias del programa."
