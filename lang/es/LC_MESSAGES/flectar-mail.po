@@ -4965,16 +4965,16 @@ msgstr "Transferir configuración de cuentas"
 #: ui/dialogs/settings-dialog.slint:2156
 msgid ""
 "Import accounts from Thunderbird, K-9 Mail, or a backup, or export one "
-"connected account and your preferences."
+"connected account with its signatures, sender identities and your preferences."
 msgid_plural ""
 "Import accounts from Thunderbird, K-9 Mail, or a backup, or export {n} "
-"connected accounts and your preferences."
+"connected accounts with their signatures, sender identities and your preferences."
 msgstr[0] ""
 "Importa cuentas desde Thunderbird, K-9 Mail o una copia de seguridad, o "
-"exporta una cuenta conectada y tus preferencias."
+"exporta una cuenta conectada con sus firmas, identidades y tus preferencias."
 msgstr[1] ""
 "Importa cuentas desde Thunderbird, K-9 Mail o una copia de seguridad, o "
-"exporta {n} cuentas conectadas y tus preferencias."
+"exporta {n} cuentas conectadas con sus firmas, identidades y tus preferencias."
 
 #: ui/dialogs/settings-dialog.slint:2158
 msgid ""
@@ -6725,3 +6725,6 @@ msgstr "Restaurar"
 #: ui/window-chrome.slint:202 ui/window-chrome.slint:239
 msgid "Maximize"
 msgstr "Maximizar"
+
+msgid "Export all"
+msgstr "Exportar todo"
