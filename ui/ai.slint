@@ -78,7 +78,7 @@ export component AiSettingsPage inherits VerticalBox {
                     vertical-alignment: center;
                     wrap: word-wrap;
                 }
-                Button { text: @tr("Save"); primary: true; clicked => { AiUi.save-provider(); } }
+                Button { width: self.content-width; text: @tr("Save"); primary: true; clicked => { AiUi.save-provider(); } }
             }
         }
     }
@@ -103,8 +103,8 @@ export component AiSettingsPage inherits VerticalBox {
             HorizontalLayout {
                 spacing: 8px;
                 alignment: end;
-                Button { text: @tr("Restore defaults"); clicked => { AiUi.reset-presets(); } }
-                Button { text: @tr("Save presets"); primary: true; clicked => { AiUi.save-presets(); } }
+                Button { width: self.content-width; text: @tr("Restore defaults"); clicked => { AiUi.reset-presets(); } }
+                Button { width: self.content-width; text: @tr("Save presets"); primary: true; clicked => { AiUi.save-presets(); } }
             }
         }
     }

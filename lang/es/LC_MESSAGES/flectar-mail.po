@@ -6782,3 +6782,15 @@ msgstr "IA · selección, todo el borrador o texto nuevo"
 
 msgid "ai artificial intelligence assistant summarize shorten rewrite draft presets openrouter ollama model api key"
 msgstr "ia inteligencia artificial asistente resumir acortar reescribir redactar presets openrouter ollama modelo clave api"
+
+msgid "AI · {}…"
+msgstr "IA · {}…"
+
+msgid "AI: {}"
+msgstr "IA: {}"
+
+msgid "AI text applied. Undo with Cmd+Z."
+msgstr "Texto de IA aplicado. Deshaz con Cmd+Z."
+
+msgid "The draft changed while AI was working; copy the result instead."
+msgstr "El borrador cambió mientras la IA trabajaba; no se ha reemplazado."
