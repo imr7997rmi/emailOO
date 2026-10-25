@@ -1,3 +1,5 @@
+import { ActionMenu } from "action-menu.slint";
+import { AiUi } from "../ai.slint";
 import { HorizontalBox, ScrollView } from "std-widgets.slint";
 import { ComposeAttachment } from "../models.slint";
 import { Button } from "button.slint";
@@ -64,6 +66,14 @@ export component ComposerToolbar inherits Rectangle {
             Rectangle { width: 1px; height: 18px; background: root.subtle-border-color; }
 
             IconButton { icon: @image-url("../icons/lucide/outline/book.svg"); icon-color: root.secondary-color; hover-background: root.control-hover-color; tooltip-text: @tr("Email templates"); clicked => { root.open-templates(); } }
+            if AiUi.configured : ActionMenu {
+                icon: @image-url("../icons/emailoo/sparkles.svg");
+                icon-color: root.secondary-color;
+                tooltip-text: @tr("AI · selection, whole draft, or write new text");
+                align-right: false;
+                entries: AiUi.composer-entries;
+                activated(id) => { AiUi.run-on-composer(id); }
+            }
 
             Rectangle { horizontal-stretch: 1; }
 

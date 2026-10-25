@@ -6725,3 +6725,60 @@ msgstr "Restaurar"
 #: ui/window-chrome.slint:202 ui/window-chrome.slint:239
 msgid "Maximize"
 msgstr "Maximizar"
+
+msgid "AI"
+msgstr "IA"
+
+msgid "Summarize, shorten, rewrite or draft emails with any OpenAI-compatible service (OpenRouter, Ollama, LM Studio…). Nothing is sent until you use an AI action."
+msgstr "Resume, acorta, reescribe o redacta correos con cualquier servicio compatible con OpenAI (OpenRouter, Ollama, LM Studio…). No se envía nada hasta que usas una acción de IA."
+
+msgid "Provider"
+msgstr "Proveedor"
+
+msgid "API URL"
+msgstr "URL de la API"
+
+msgid "Model"
+msgstr "Modelo"
+
+msgid "API key (stored in the system keychain; leave empty to keep the saved one)"
+msgstr "Clave API (se guarda en el llavero del sistema; déjala vacía para mantener la guardada)"
+
+msgid "API key"
+msgstr "Clave API"
+
+msgid "AI is configured."
+msgstr "La IA está configurada."
+
+msgid "AI is not configured yet."
+msgstr "La IA aún no está configurada."
+
+msgid "Presets"
+msgstr "Presets"
+
+msgid "One preset per line, as “Name: instruction”. They appear in the AI menu of the reader (applied to the selection, or to the whole message) and of the composer (applied to the selection, the whole draft, or used to write new text when the draft is empty)."
+msgstr "Un preset por línea, como «Nombre: instrucción». Aparecen en el menú IA del lector (sobre la selección o el mensaje entero) y del redactor (sobre la selección, todo el borrador, o para escribir texto nuevo si el borrador está vacío)."
+
+msgid "Restore defaults"
+msgstr "Restaurar predeterminados"
+
+msgid "Save presets"
+msgstr "Guardar presets"
+
+msgid "AI is working…"
+msgstr "La IA está trabajando…"
+
+msgid "Replace in draft"
+msgstr "Reemplazar en el borrador"
+
+msgid "AI · on the selection"
+msgstr "IA · sobre la selección"
+
+msgid "AI · on this message"
+msgstr "IA · sobre este mensaje"
+
+msgid "AI · selection, whole draft, or write new text"
+msgstr "IA · selección, todo el borrador o texto nuevo"
+
+msgid "ai artificial intelligence assistant summarize shorten rewrite draft presets openrouter ollama model api key"
+msgstr "ia inteligencia artificial asistente resumir acortar reescribir redactar presets openrouter ollama modelo clave api"

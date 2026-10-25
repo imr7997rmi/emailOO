@@ -38,6 +38,7 @@ pub mod signatures;
 pub mod smtp;
 pub mod sync;
 pub mod unsubscribe;
+mod ai_assist;
 
 use crate::accounts::credentials::{self, CredentialStoreHandle, Slot};
 use crate::config::Paths;

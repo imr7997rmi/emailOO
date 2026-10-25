@@ -16,6 +16,7 @@ import { AppTheme, LayoutMetrics, MailIconPalette, MotionSettings } from "../des
 import { MessageColors } from "../message-colors.slint";
 import { WindowChrome, WindowControlsClearance } from "../window-chrome.slint";
 import { Shortcuts } from "../shortcuts.slint";
+import { AiUi } from "../ai.slint";
 
 component ReaderControl inherits ToolbarIconButton {
     tooltip-above: true;
@@ -1014,6 +1015,17 @@ export component MailReadingPane inherits FocusScope {
                                             }
                                         }
                                     }
+                                }
+                            }
+                            if AiUi.configured : ActionMenu {
+                                compact: root.compact;
+                                interactive: root.has_selected;
+                                icon: @image-url("../icons/emailoo/sparkles.svg");
+                                icon-color: root.secondary-text;
+                                tooltip-text: root.selected_text != "" ? @tr("AI · on the selection") : @tr("AI · on this message");
+                                entries: AiUi.reader-entries;
+                                activated(id) => {
+                                    AiUi.run-on-reader(id, root.selected_text != "" ? root.selected_text : root.selected_plain_text);
                                 }
                             }
                             ActionMenu {

@@ -5,6 +5,8 @@ import { AttachmentPreviewDialog } from "dialogs/attachment-preview-dialog.slint
 export { MailAttachments, MailAttachment } from "models.slint";
 export { ZoomApi } from "components/zoom-controls.slint";
 export { RendererSettings } from "renderer-settings.slint";
+export { AiUi } from "ai.slint";
+import { AiResultPanel } from "ai.slint";
 export { WindowChrome } from "window-chrome.slint";
 import { WindowChrome, WindowControls, WindowDragArea } from "window-chrome.slint";
 // Bundled once at compile time and used throughout the application chrome.
@@ -2433,6 +2435,14 @@ export component AppWindow inherits Window {
         maximized: root.maximized;
         foreground: root.title-color;
         background-color: root.top-bar ? root.tab-strip-bg : AppTheme.surface;
+    }
+
+    AiResultPanel {
+        x: 0px;
+        y: 0px;
+        width: root.width;
+        height: root.height;
+        z: 40000;
     }
 
     if root.client-frame : Rectangle {
