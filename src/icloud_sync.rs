@@ -5,6 +5,7 @@
 
 use super::*;
 use slint::SharedString;
+use crate::data_controller::{build_account_backup, restore_account_backup};
 use std::{
     cell::Cell,
     hash::{Hash, Hasher},
