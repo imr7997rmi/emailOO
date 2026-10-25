@@ -24,6 +24,19 @@ commit="$(git -C "$project_dir" rev-parse --short HEAD)"
 bash "$project_dir/scripts/package-macos.sh" "$binary" "$staging" >/dev/null
 app="$staging/Flectar Mail.app"
 plist="$app/Contents/Info.plist"
+# emailOO icon (SuitOO style) replaces the upstream artwork.
+icon_png="$project_dir/resources/app-icon/emailoo-macos.png"
+if [[ -f "$icon_png" ]]; then
+  iconset="$staging/emailOO.iconset"
+  rm -rf "$iconset" && mkdir -p "$iconset"
+  for size in 16 32 128 256 512; do
+    sips -z $size $size "$icon_png" --out "$iconset/icon_${size}x${size}.png" >/dev/null
+    sips -z $((size * 2)) $((size * 2)) "$icon_png" --out "$iconset/icon_${size}x${size}@2x.png" >/dev/null
+  done
+  icon_file="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIconFile" "$plist")"
+  iconutil -c icns "$iconset" -o "$app/Contents/Resources/${icon_file%.icns}.icns"
+  rm -rf "$iconset"
+fi
 /usr/libexec/PlistBuddy \
   -c "Set :CFBundleIdentifier com.nivvoo.emailoo" \
   -c "Set :CFBundleName $app_name" \
