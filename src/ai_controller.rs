@@ -261,8 +261,6 @@ pub(super) fn register(
             if for_composer {
                 app.set_compose_notice(UiMessage::detail("AI · {}…", title.clone()));
                 app.set_compose_notice_is_error(false);
-            } else {
-                ui.set_result_open(true);
             }
             let task = runtime.spawn(async move { core.ai_assist(instruction, text).await });
             let abort = task.abort_handle();
@@ -284,7 +282,10 @@ pub(super) fn register(
                         ui.set_result(answer.into());
                         ui.invoke_apply_result_to_composer();
                     }
-                    (Ok(answer), false) => ui.set_result(answer.into()),
+                    (Ok(answer), false) => {
+                        ui.set_result(answer.into());
+                        ui.set_result_open(true);
+                    }
                     (Err(error), true) => {
                         app.set_compose_notice(UiMessage::detail("AI: {}", error));
                         app.set_compose_notice_is_error(true);
@@ -293,6 +294,7 @@ pub(super) fn register(
                         ui.set_result_for_composer(false);
                         ui.set_result_title(format!("{title} · error").into());
                         ui.set_result(error.into());
+                        ui.set_result_open(true);
                     }
                 }
             }) {
@@ -309,6 +311,12 @@ pub(super) fn register(
         let run = run.clone();
         ui.on_run_on_reader(move |id, text| {
             let Some(app) = weak.upgrade() else { return };
+            // While a draft is open, the AI menu works on the draft: the
+            // selection there is replaced in place.
+            if app.get_compose_open() {
+                app.global::<AiUi>().invoke_run_on_composer(id);
+                return;
+            }
             let Some(preset) = preset_for(&presets.borrow(), id.as_str()) else { return };
             run(&app, preset.name, preset.instruction, text.to_string(), false);
         });
