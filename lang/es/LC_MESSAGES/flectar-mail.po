@@ -6744,3 +6744,9 @@ msgstr[0] ""
 msgstr[1] ""
 "Importa desde Thunderbird, K-9 Mail o una copia de seguridad, o exporta toda "
 "tu configuración: {n} cuentas, firmas, identidades y preferencias del programa."
+
+msgid "Sync settings with iCloud Drive"
+msgstr "Sincronizar la configuración con iCloud Drive"
+
+msgid "Keeps your accounts (without passwords), preferences, signatures and identities in iCloud Drive/emailOO so your other Macs pick them up."
+msgstr "Guarda tus cuentas (sin contraseñas), preferencias, firmas e identidades en iCloud Drive/emailOO para que tus otros Mac las recojan."

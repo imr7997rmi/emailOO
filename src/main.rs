@@ -65,6 +65,7 @@ mod tabs;
 mod theme;
 mod ui_dispatch;
 mod ui_message;
+mod icloud_sync;
 mod window_chrome;
 mod window_controller;
 
@@ -5737,6 +5738,7 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
     );
     let compose_templates = Rc::new(RefCell::new(Vec::<Snippet>::new()));
     account_mail_preferences::register(&app, &state, &runtime, &compose_document, &compose_editor);
+    icloud_sync::register(&app, &state, &runtime, platform.paths.data_dir.clone());
     apply_compose_files(&app, &compose_files.borrow());
     apply_compose_contacts(&app, &[]);
     apply_email_templates(&app, &[]);
