@@ -1,0 +1,7 @@
+// emailOO: iCloud Drive settings sync (src/icloud_sync.rs).
+export global CloudSync {
+    in property <bool> available: false;
+    in-out property <bool> enabled: false;
+    in property <string> status: "";
+    callback toggle(bool);
+}

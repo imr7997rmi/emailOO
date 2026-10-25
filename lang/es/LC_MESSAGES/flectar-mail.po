@@ -6724,3 +6724,9 @@ msgstr "Texto de IA aplicado. Deshaz con Cmd+Z."
 
 msgid "The draft changed while AI was working; copy the result instead."
 msgstr "El borrador cambió mientras la IA trabajaba; no se ha reemplazado."
+
+msgid "Sync settings with iCloud Drive"
+msgstr "Sincronizar la configuración con iCloud Drive"
+
+msgid "Keeps your accounts (without passwords), preferences, signatures and identities in iCloud Drive/emailOO so your other Macs pick them up."
+msgstr "Guarda tus cuentas (sin contraseñas), preferencias, firmas e identidades en iCloud Drive/emailOO para que tus otros Mac las recojan."
