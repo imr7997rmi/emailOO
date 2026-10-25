@@ -25,6 +25,8 @@ export component ActionMenu inherits Rectangle {
     in property <length> menu-width: 280px;
     in property <length> max-menu-height: 560px;
     in property <bool> align-right: true;
+    // emailOO: lets toolbars without button backgrounds match their neighbours.
+    in property <color> idle-background: AppTheme.control-bg;
     callback activated(string);
 
     private property <length> item-height: root.compact ? LayoutMetrics.touch-target : 36px;
@@ -72,7 +74,7 @@ export component ActionMenu inherits Rectangle {
         interactive: root.interactive;
         icon: root.icon;
         icon-color: root.icon-color;
-        idle-background: AppTheme.control-bg;
+        idle-background: root.idle-background;
         hover-background: AppTheme.muted-control-bg;
         active-background: AppTheme.muted-control-bg;
         active: root.menu-open;

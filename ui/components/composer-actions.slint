@@ -67,6 +67,9 @@ export component ComposerToolbar inherits Rectangle {
 
             IconButton { icon: @image-url("../icons/lucide/outline/book.svg"); icon-color: root.secondary-color; hover-background: root.control-hover-color; tooltip-text: @tr("Email templates"); clicked => { root.open-templates(); } }
             if AiUi.configured : ActionMenu {
+                width: 32px;
+                height: 32px;
+                idle-background: transparent;
                 icon: @image-url("../icons/emailoo/sparkles.svg");
                 icon-color: root.secondary-color;
                 tooltip-text: @tr("AI · selection, whole draft, or write new text");

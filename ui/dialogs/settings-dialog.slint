@@ -686,6 +686,8 @@ export component SettingsDialog inherits Rectangle {
     }
 
     pure function settings-section-visible(section: string) -> bool {
+        // emailOO: Flectar's paid Services page is not part of this fork.
+        if section == "Services" { return false; }
         if root.settings-search-query == "" { return true; }
         let terms = section == "General"
             ? @tr("general theme appearance palette language time clock 12-hour 24-hour workspace layout window frameless title bar renderer privacy remote images sync group messages date inbox tray background startup sign in login")

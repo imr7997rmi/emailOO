@@ -258,7 +258,12 @@ pub(super) fn register(
             ui.set_result(SharedString::new());
             ui.set_result_for_composer(for_composer);
             ui.set_busy(true);
-            ui.set_result_open(true);
+            if for_composer {
+                app.set_compose_notice(UiMessage::detail("AI · {}…", title.clone()));
+                app.set_compose_notice_is_error(false);
+            } else {
+                ui.set_result_open(true);
+            }
             let task = runtime.spawn(async move { core.ai_assist(instruction, text).await });
             let abort = task.abort_handle();
             let weak = app.as_weak();
@@ -274,9 +279,17 @@ pub(super) fn register(
                 let Some(app) = weak.upgrade() else { return };
                 let ui = app.global::<AiUi>();
                 ui.set_busy(false);
-                match result {
-                    Ok(answer) => ui.set_result(answer.into()),
-                    Err(error) => {
+                match (result, for_composer) {
+                    (Ok(answer), true) => {
+                        ui.set_result(answer.into());
+                        ui.invoke_apply_result_to_composer();
+                    }
+                    (Ok(answer), false) => ui.set_result(answer.into()),
+                    (Err(error), true) => {
+                        app.set_compose_notice(UiMessage::detail("AI: {}", error));
+                        app.set_compose_notice_is_error(true);
+                    }
+                    (Err(error), false) => {
                         ui.set_result_for_composer(false);
                         ui.set_result_title(format!("{title} · error").into());
                         ui.set_result(error.into());
@@ -360,6 +373,8 @@ pub(super) fn register(
             let selection = document.insert_text(&answer);
             apply_rich_compose(&app, &document, selection, &mut editor.borrow_mut());
             ui.set_result_open(false);
+            app.set_compose_notice(UiMessage::plain("AI text applied. Undo with Cmd+Z."));
+            app.set_compose_notice_is_error(false);
         });
     }
 
