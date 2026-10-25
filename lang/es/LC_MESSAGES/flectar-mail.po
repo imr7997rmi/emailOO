@@ -94,11 +94,6 @@ msgctxt "month in a date"
 msgid "April"
 msgstr "abril"
 
-#: ui/app.slint:109
-msgctxt "month in a date"
-msgid "May"
-msgstr "mayo"
-
 #: ui/app.slint:110
 msgctxt "month in a date"
 msgid "June"
@@ -131,66 +126,6 @@ msgstr "noviembre"
 
 #: ui/app.slint:116
 msgctxt "month in a date"
-msgid "December"
-msgstr "diciembre"
-
-#: ui/app.slint:118
-msgctxt "month on its own"
-msgid "January"
-msgstr "enero"
-
-#: ui/app.slint:119
-msgctxt "month on its own"
-msgid "February"
-msgstr "febrero"
-
-#: ui/app.slint:120
-msgctxt "month on its own"
-msgid "March"
-msgstr "marzo"
-
-#: ui/app.slint:121
-msgctxt "month on its own"
-msgid "April"
-msgstr "abril"
-
-#: ui/app.slint:122
-msgctxt "month on its own"
-msgid "May"
-msgstr "mayo"
-
-#: ui/app.slint:123
-msgctxt "month on its own"
-msgid "June"
-msgstr "junio"
-
-#: ui/app.slint:124
-msgctxt "month on its own"
-msgid "July"
-msgstr "julio"
-
-#: ui/app.slint:125
-msgctxt "month on its own"
-msgid "August"
-msgstr "agosto"
-
-#: ui/app.slint:126
-msgctxt "month on its own"
-msgid "September"
-msgstr "septiembre"
-
-#: ui/app.slint:127
-msgctxt "month on its own"
-msgid "October"
-msgstr "octubre"
-
-#: ui/app.slint:128
-msgctxt "month on its own"
-msgid "November"
-msgstr "noviembre"
-
-#: ui/app.slint:129
-msgctxt "month on its own"
 msgid "December"
 msgstr "diciembre"
 
@@ -274,11 +209,6 @@ msgctxt "date pattern (CLDR): date of older mail in lists, keep it short"
 msgid "MMM d, y"
 msgstr "d MMM y"
 
-#: ui/app.slint:152
-msgctxt "date pattern (CLDR): a date on its own"
-msgid "MMM d, y"
-msgstr "d MMM y"
-
 #: ui/app.slint:153
 msgctxt "date pattern (CLDR): a date with its weekday"
 msgid "EEE, MMM d, y"
@@ -303,16 +233,6 @@ msgstr "d"
 msgctxt "date pattern (CLDR): last date of a range within one month"
 msgid "d, y"
 msgstr "d 'de' MMMM 'de' y"
-
-#: ui/app.slint:158
-msgctxt "date pattern (CLDR): first date of a range within one year"
-msgid "MMM d"
-msgstr "d MMM"
-
-#: ui/app.slint:159
-msgctxt "date pattern (CLDR): last date of a range within one year"
-msgid "MMM d, y"
-msgstr "d MMM y"
 
 #: ui/app.slint:160
 msgctxt "time pattern (CLDR): 24-hour clock"
@@ -2216,11 +2136,6 @@ msgctxt "Wednesday initial"
 msgid "W"
 msgstr "X"
 
-#: ui/components/calendar.slint:163 ui/components/calendar.slint:793
-msgctxt "Thursday initial"
-msgid "T"
-msgstr "J"
-
 #: ui/components/calendar.slint:164 ui/components/calendar.slint:793
 msgctxt "Friday initial"
 msgid "F"
@@ -2230,11 +2145,6 @@ msgstr "V"
 msgctxt "Saturday initial"
 msgid "S"
 msgstr "S"
-
-#: ui/components/calendar.slint:166 ui/components/calendar.slint:793
-msgctxt "Sunday initial"
-msgid "S"
-msgstr "D"
 
 #: ui/components/calendar.slint:212 ui/components/calendar.slint:622
 #: ui/components/calendar.slint:823
@@ -2666,11 +2576,6 @@ msgstr "Alt"
 msgctxt "Keyboard key"
 msgid "Shift"
 msgstr "Mayús"
-
-#: ui/components/kbd.slint:27
-msgctxt "Keyboard key"
-msgid "Delete"
-msgstr "Supr"
 
 #: ui/components/kbd.slint:28
 msgctxt "Keyboard key"
@@ -6750,3 +6655,60 @@ msgstr[0] ""
 msgstr[1] ""
 "Importa desde Thunderbird, K-9 Mail o una copia de seguridad, o exporta toda "
 "tu configuración: {n} cuentas, firmas, identidades y preferencias del programa."
+
+msgid "AI"
+msgstr "IA"
+
+msgid "Summarize, shorten, rewrite or draft emails with any OpenAI-compatible service (OpenRouter, Ollama, LM Studio…). Nothing is sent until you use an AI action."
+msgstr "Resume, acorta, reescribe o redacta correos con cualquier servicio compatible con OpenAI (OpenRouter, Ollama, LM Studio…). No se envía nada hasta que usas una acción de IA."
+
+msgid "Provider"
+msgstr "Proveedor"
+
+msgid "API URL"
+msgstr "URL de la API"
+
+msgid "Model"
+msgstr "Modelo"
+
+msgid "API key (stored in the system keychain; leave empty to keep the saved one)"
+msgstr "Clave API (se guarda en el llavero del sistema; déjala vacía para mantener la guardada)"
+
+msgid "API key"
+msgstr "Clave API"
+
+msgid "AI is configured."
+msgstr "La IA está configurada."
+
+msgid "AI is not configured yet."
+msgstr "La IA aún no está configurada."
+
+msgid "Presets"
+msgstr "Presets"
+
+msgid "One preset per line, as “Name: instruction”. They appear in the AI menu of the reader (applied to the selection, or to the whole message) and of the composer (applied to the selection, the whole draft, or used to write new text when the draft is empty)."
+msgstr "Un preset por línea, como «Nombre: instrucción». Aparecen en el menú IA del lector (sobre la selección o el mensaje entero) y del redactor (sobre la selección, todo el borrador, o para escribir texto nuevo si el borrador está vacío)."
+
+msgid "Restore defaults"
+msgstr "Restaurar predeterminados"
+
+msgid "Save presets"
+msgstr "Guardar presets"
+
+msgid "AI is working…"
+msgstr "La IA está trabajando…"
+
+msgid "Replace in draft"
+msgstr "Reemplazar en el borrador"
+
+msgid "AI · on the selection"
+msgstr "IA · sobre la selección"
+
+msgid "AI · on this message"
+msgstr "IA · sobre este mensaje"
+
+msgid "AI · selection, whole draft, or write new text"
+msgstr "IA · selección, todo el borrador o texto nuevo"
+
+msgid "ai artificial intelligence assistant summarize shorten rewrite draft presets openrouter ollama model api key"
+msgstr "ia inteligencia artificial asistente resumir acortar reescribir redactar presets openrouter ollama modelo clave api"

@@ -1,0 +1,158 @@
+// AI assistant (emailOO): provider settings, user presets, and the result
+// panel shared by the reader and the composer. Logic lives in
+// src/ai_controller.rs.
+import { ActionMenuEntry } from "components/action-menu.slint";
+import { AppTheme, LayoutMetrics } from "design-system.slint";
+import { TypeScale } from "typography.slint";
+import { Button } from "components/button.slint";
+import { LineEdit, TextEdit } from "components/controls.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export global AiUi {
+    // Settings
+    in-out property <string> base-url: "https://openrouter.ai/api/v1";
+    in-out property <string> model: "";
+    in-out property <string> api-key: "";
+    in-out property <string> presets-text: "";
+    in property <bool> configured: false;
+    in property <string> status: "";
+    in property <bool> status-is-error: false;
+    // Menus built from the presets
+    in property <[ActionMenuEntry]> reader-entries: [];
+    in property <[ActionMenuEntry]> composer-entries: [];
+    // Result panel
+    in property <bool> busy: false;
+    in-out property <bool> result-open: false;
+    in property <string> result-title: "";
+    in-out property <string> result: "";
+    in property <bool> result-for-composer: false;
+
+    callback save-provider();
+    callback save-presets();
+    callback reset-presets();
+    callback run-on-reader(string /* entry id */, string /* text */);
+    callback run-on-composer(string /* entry id */);
+    callback apply-result-to-composer();
+    callback cancel();
+}
+
+export component AiSettingsPage inherits VerticalBox {
+    in property <color> title-color;
+    in property <color> body-text;
+    in property <color> secondary-text;
+    in property <color> surface;
+    in property <color> card-border-color;
+    padding: 0px;
+    spacing: 12px;
+
+    Text {
+        text: @tr("Summarize, shorten, rewrite or draft emails with any OpenAI-compatible service (OpenRouter, Ollama, LM Studio…). Nothing is sent until you use an AI action.");
+        color: root.secondary-text;
+        font-size: TypeScale.secondary;
+        wrap: word-wrap;
+    }
+
+    Rectangle {
+        background: root.surface;
+        border-radius: 8px;
+        border-width: 1px;
+        border-color: root.card-border-color;
+        height: provider-box.preferred-height;
+        provider-box := VerticalBox {
+            padding: 16px;
+            spacing: 8px;
+            Text { text: @tr("Provider"); color: root.title-color; font-size: TypeScale.body; font-weight: 600; }
+            Text { text: @tr("API URL"); color: root.secondary-text; font-size: TypeScale.caption; }
+            LineEdit { text <=> AiUi.base-url; placeholder-text: "https://openrouter.ai/api/v1"; input-label: @tr("API URL"); }
+            Text { text: @tr("Model"); color: root.secondary-text; font-size: TypeScale.caption; }
+            LineEdit { text <=> AiUi.model; placeholder-text: "openai/gpt-4o-mini"; input-label: @tr("Model"); }
+            Text { text: @tr("API key (stored in the system keychain; leave empty to keep the saved one)"); color: root.secondary-text; font-size: TypeScale.caption; wrap: word-wrap; }
+            LineEdit { text <=> AiUi.api-key; input-type: password; placeholder-text: AiUi.configured ? @tr("Saved") : "sk-…"; input-label: @tr("API key"); }
+            HorizontalLayout {
+                spacing: 12px;
+                Text {
+                    horizontal-stretch: 1;
+                    text: AiUi.status != "" ? AiUi.status : AiUi.configured ? @tr("AI is configured.") : @tr("AI is not configured yet.");
+                    color: AiUi.status-is-error ? #e5484d : root.secondary-text;
+                    font-size: TypeScale.caption;
+                    vertical-alignment: center;
+                    wrap: word-wrap;
+                }
+                Button { text: @tr("Save"); primary: true; clicked => { AiUi.save-provider(); } }
+            }
+        }
+    }
+
+    Rectangle {
+        background: root.surface;
+        border-radius: 8px;
+        border-width: 1px;
+        border-color: root.card-border-color;
+        height: presets-box.preferred-height;
+        presets-box := VerticalBox {
+            padding: 16px;
+            spacing: 8px;
+            Text { text: @tr("Presets"); color: root.title-color; font-size: TypeScale.body; font-weight: 600; }
+            Text {
+                text: @tr("One preset per line, as “Name: instruction”. They appear in the AI menu of the reader (applied to the selection, or to the whole message) and of the composer (applied to the selection, the whole draft, or used to write new text when the draft is empty).");
+                color: root.secondary-text;
+                font-size: TypeScale.caption;
+                wrap: word-wrap;
+            }
+            TextEdit { height: 220px; text <=> AiUi.presets-text; font-size: TypeScale.secondary; }
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: end;
+                Button { text: @tr("Restore defaults"); clicked => { AiUi.reset-presets(); } }
+                Button { text: @tr("Save presets"); primary: true; clicked => { AiUi.save-presets(); } }
+            }
+        }
+    }
+}
+
+// Floating panel with the streaming state and the answer. The text stays
+// editable so it can be adjusted or copied before it is used.
+export component AiResultPanel inherits Rectangle {
+    visible: AiUi.result-open;
+    background: #00000066;
+
+    TouchArea { clicked => { if !AiUi.busy { AiUi.result-open = false; } } }
+
+    panel := Rectangle {
+        width: min(parent.width - 48px, 720px);
+        height: min(parent.height - 96px, 520px);
+        background: AppTheme.surface-raised;
+        border-radius: 12px;
+        border-width: 1px;
+        border-color: AppTheme.border;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #00000055;
+
+        TouchArea { }
+
+        VerticalBox {
+            padding: 16px;
+            spacing: 10px;
+            Text {
+                text: AiUi.busy ? @tr("AI is working…") : AiUi.result-title;
+                color: AppTheme.heading;
+                font-size: TypeScale.body;
+                font-weight: 600;
+            }
+            TextEdit { vertical-stretch: 1; text <=> AiUi.result; read-only: AiUi.busy; font-size: TypeScale.secondary; }
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: end;
+                Button {
+                    text: AiUi.busy ? @tr("Cancel") : @tr("Close");
+                    clicked => { if AiUi.busy { AiUi.cancel(); } AiUi.result-open = false; }
+                }
+                if AiUi.result-for-composer && !AiUi.busy : Button {
+                    text: @tr("Replace in draft");
+                    primary: true;
+                    clicked => { AiUi.apply-result-to-composer(); }
+                }
+            }
+        }
+    }
+}

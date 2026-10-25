@@ -1,5 +1,6 @@
 import { AccountMailPreferencesPanel } from "../components/account-mail-preferences.slint";
 import { RendererSettings } from "../renderer-settings.slint";
+import { AiSettingsPage } from "../ai.slint";
 import { WindowChrome } from "../window-chrome.slint";
 import { MessageColors } from "../message-colors.slint";
 import { MailPorts, MailSecurityFields } from "../components/mail-security-fields.slint";
@@ -680,6 +681,7 @@ export component SettingsDialog inherits Rectangle {
             : section == "Shortcuts" ? SettingsIconPalette.shortcuts
             : section == "Data" ? SettingsIconPalette.storage
             : section == "Services" ? SettingsIconPalette.services
+            : section == "AI" ? SettingsIconPalette.services
             : SettingsIconPalette.about;
     }
 
@@ -697,6 +699,8 @@ export component SettingsDialog inherits Rectangle {
             ? @tr("shortcuts keyboard keys compose search archive spam junk trash delete navigation messages reading find zoom caret tabs")
             : section == "Data"
             ? @tr("storage data usage mail attachments files databases backup snapshot import export delete")
+            : section == "AI"
+            ? @tr("ai artificial intelligence assistant summarize shorten rewrite draft presets openrouter ollama model api key")
             : section == "Services"
             ? @tr("services flectar base account sign in subscription paid sync devices business email custom domain mailbox")
             : @tr("about version credits contributors license flectar");
@@ -707,7 +711,8 @@ export component SettingsDialog inherits Rectangle {
         || root.settings-section-visible("Accounts") || root.settings-section-visible("Contacts")
         || root.settings-section-visible("Notifications")
         || root.settings-section-visible("Shortcuts") || root.settings-section-visible("Data")
-        || root.settings-section-visible("Services") || root.settings-section-visible("About");
+        || root.settings-section-visible("Services") || root.settings-section-visible("AI")
+        || root.settings-section-visible("About");
 
     init => {
         if root.new-profile-requested {
@@ -983,6 +988,7 @@ export component SettingsDialog inherits Rectangle {
                         if root.settings-section-visible("Shortcuts") : SettingsNavItem { text: @tr("Shortcuts"); icon: @image-url("../icons/lucide/filled/keyboard.svg"); icon-color: root.settings-icon-color("Shortcuts"); selected: root.settings_tab == "Shortcuts"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "Shortcuts"; } }
                         if root.settings-section-visible("Data") : SettingsNavItem { text: @tr("Storage"); icon: @image-url("../icons/lucide/filled/database.svg"); icon-color: root.settings-icon-color("Data"); selected: root.settings_tab == "Data"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "Data"; } }
                         if root.settings-section-visible("Services") : SettingsNavItem { text: @tr("Services"); icon: @image-url("../icons/lucide/filled/cloud.svg"); icon-color: root.settings-icon-color("Services"); selected: root.settings_tab == "Services"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "Services"; } }
+                        if root.settings-section-visible("AI") : SettingsNavItem { text: @tr("AI"); icon: @image-url("../icons/emailoo/sparkles.svg"); icon-color: root.settings-icon-color("AI"); selected: root.settings_tab == "AI"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "AI"; } }
                         if root.settings-section-visible("About") : SettingsNavItem { text: @tr("About"); icon: @image-url("../icons/lucide/filled/info.svg"); icon-color: root.settings-icon-color("About"); selected: root.settings_tab == "About"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "About"; } }
                         Rectangle { vertical-stretch: 1; }
                     }
@@ -2282,6 +2288,31 @@ export component SettingsDialog inherits Rectangle {
                         }
                     }
 
+                    ai-scroll := ScrollView {
+                        visible: root.settings_tab == "AI";
+                        width: parent.width;
+                        height: parent.height;
+                        mouse-drag-pan-enabled: root.compact;
+                        content-width: self.visible-width;
+
+                        VerticalBox {
+                            x: root.compact ? 16px : max(24px, (ai-scroll.visible-width - 920px) / 2);
+                            width: root.compact ? ai-scroll.visible-width - 32px : min(920px, ai-scroll.visible-width - 48px);
+                            padding-top: root.compact ? LayoutMetrics.compact-header-height + 16px : 28px;
+                            padding-bottom: 32px;
+                            spacing: 12px;
+
+                            SettingsPageTitle { label: @tr("AI"); title-color: root.title-color; }
+                            AiSettingsPage {
+                                title-color: root.heading;
+                                body-text: root.body-text;
+                                secondary-text: root.secondary-text;
+                                surface: root.surface;
+                                card-border-color: root.border-subtle;
+                            }
+                        }
+                    }
+
                     services-scroll := ScrollView {
                         visible: root.settings_tab == "Services";
                         width: parent.width;
@@ -2508,7 +2539,8 @@ export component SettingsDialog inherits Rectangle {
                     : root.settings_tab == "Notifications" ? @tr("Notifications")
                     : root.settings_tab == "Shortcuts" ? @tr("Shortcuts")
                     : root.settings_tab == "Data" ? @tr("Storage")
-                    : root.settings_tab == "Services" ? @tr("Services") : @tr("About");
+                    : root.settings_tab == "Services" ? @tr("Services")
+                    : root.settings_tab == "AI" ? @tr("AI") : @tr("About");
                 show-leading: true;
                 leading-icon: @image-url("../icons/lucide/filled/sliders.svg");
                 leading-tooltip: @tr("Settings sections");
@@ -2579,6 +2611,7 @@ export component SettingsDialog inherits Rectangle {
                     if root.settings-section-visible("Shortcuts") : SettingsNavItem { text: @tr("Shortcuts"); icon: @image-url("../icons/lucide/filled/keyboard.svg"); icon-color: root.settings-icon-color("Shortcuts"); selected: root.settings_tab == "Shortcuts"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "Shortcuts"; root.compact-nav-open = false; } }
                     if root.settings-section-visible("Data") : SettingsNavItem { text: @tr("Storage"); icon: @image-url("../icons/lucide/filled/database.svg"); icon-color: root.settings-icon-color("Data"); selected: root.settings_tab == "Data"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "Data"; root.compact-nav-open = false; } }
                     if root.settings-section-visible("Services") : SettingsNavItem { text: @tr("Services"); icon: @image-url("../icons/lucide/filled/cloud.svg"); icon-color: root.settings-icon-color("Services"); selected: root.settings_tab == "Services"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "Services"; root.compact-nav-open = false; } }
+                    if root.settings-section-visible("AI") : SettingsNavItem { text: @tr("AI"); icon: @image-url("../icons/emailoo/sparkles.svg"); icon-color: root.settings-icon-color("AI"); selected: root.settings_tab == "AI"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "AI"; root.compact-nav-open = false; } }
                     if root.settings-section-visible("About") : SettingsNavItem { text: @tr("About"); icon: @image-url("../icons/lucide/filled/info.svg"); icon-color: root.settings-icon-color("About"); selected: root.settings_tab == "About"; accent: root.accent; accent-soft: root.accent-soft; body-text: root.body-text; muted-text: root.muted-text; clicked => { root.settings_tab = "About"; root.compact-nav-open = false; } }
                     Rectangle { vertical-stretch: 1; }
                 }
