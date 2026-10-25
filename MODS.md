@@ -1,10 +1,10 @@
-# Flectar Mail Mods
+# emailOO
 
-Unofficial fork of [Flectar Mail](https://github.com/flectar/mail) by
+emailOO is part of the SuitOO app suite. It is an unofficial fork of [Flectar Mail](https://github.com/flectar/mail) by
 [imr7997rmi](https://github.com/imr7997rmi). It tracks upstream closely and adds
 a few improvements on top. Not affiliated with or endorsed by Flectar; the
 Flectar name and logo belong to their owners (see [TRADEMARKS.md](TRADEMARKS.md)).
-Licensed under the same terms as upstream, AGPL-3.0-only.
+Licensed under the same terms as upstream, AGPL-3.0-only. emailOO is derived from Flectar Mail and is not produced, sponsored, or supported by Flectar.
 
 ## Branches
 
@@ -23,7 +23,7 @@ Licensed under the same terms as upstream, AGPL-3.0-only.
 | `mods/full-config-backup` | Settings export/import also carries signatures, default signatures and manual sender identities | #5 |
 | `mods/macos-icon-margin` | macOS icon with Apple's standard transparent margin, so it is not larger than other Dock icons | #7 |
 | `mods/about-version` | About shows the mod label and the upstream base it was built on | — |
-| `mods/build-scripts` | `scripts/mod-install-macos.sh`: packages and installs *Flectar Mail Mods.app* | — |
+| `mods/build-scripts` | `scripts/mod-install-macos.sh`: packages and installs *emailOO.app* | — |
 
 Planned: configurable shortcuts (#2), message in a new window (#3), Nextcloud
 share links instead of large attachments (#4), macOS app menu tweaks (#6).
@@ -50,8 +50,8 @@ scripts/mod-install-macos.sh debug
 cargo build --release --locked && scripts/mod-install-macos.sh release
 ```
 
-The app installs as *Flectar Mail Mods* (`com.flectar.mail.mods`) and uses the
+The app installs as *emailOO* (`com.nivvoo.emailoo`) and uses the
 same data directory as Flectar Mail. Opening it upgrades the mail database, so
 an older Flectar Mail release cannot open that data afterwards — back it up
-first. Create a code-signing certificate named `Flectar Mods Local` in Keychain
+first. Create a code-signing certificate named `emailOO Local` in Keychain
 Access to keep keychain access across rebuilds.

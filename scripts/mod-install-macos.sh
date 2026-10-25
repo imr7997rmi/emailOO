@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fork helper: package a built binary as "Flectar Mail Mods.app", label it with
+# Fork helper: package a built binary as "emailOO.app", label it with
 # the mod and its upstream base, and install it in /Applications and in the
 # per-architecture build folder. Usage:
 #   scripts/mod-install-macos.sh [debug|release]
@@ -15,7 +15,7 @@ case "$(uname -m)" in
 esac
 build_dir="$project_dir/../build/$arch_dir"
 staging="$target_dir/macos-$profile"
-app_name="Flectar Mail Mods"
+app_name="emailOO"
 
 version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project_dir/Cargo.toml" | head -1)"
 base="$(git -C "$project_dir" rev-parse --short main 2>/dev/null || echo unknown)"
@@ -25,7 +25,7 @@ bash "$project_dir/scripts/package-macos.sh" "$binary" "$staging" >/dev/null
 app="$staging/Flectar Mail.app"
 plist="$app/Contents/Info.plist"
 /usr/libexec/PlistBuddy \
-  -c "Set :CFBundleIdentifier com.flectar.mail.mods" \
+  -c "Set :CFBundleIdentifier com.nivvoo.emailoo" \
   -c "Set :CFBundleName $app_name" \
   -c "Set :CFBundleDisplayName $app_name" \
   -c "Set :CFBundleShortVersionString $version mod" \
@@ -35,7 +35,7 @@ plist="$app/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string imr7997rmi · base $base" "$plist"
 # A stable local signing identity keeps keychain access across rebuilds;
 # ad-hoc signatures change every build and macOS asks again per account.
-sign_id="${FLECTAR_SIGN_ID:-Flectar Mods Local}"
+sign_id="${FLECTAR_SIGN_ID:-emailOO Local}"
 if security find-identity -p codesigning 2>/dev/null | grep -q "\"$sign_id\""; then
   codesign --force --deep --sign "$sign_id" "$app"
 else
