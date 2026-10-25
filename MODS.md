@@ -23,10 +23,14 @@ Licensed under the same terms as upstream, AGPL-3.0-only. emailOO is derived fro
 | `mods/full-config-backup` | Settings export/import also carries signatures, default signatures and manual sender identities | #5 |
 | `mods/macos-icon-margin` | macOS icon with Apple's standard transparent margin, so it is not larger than other Dock icons | #7 |
 | `mods/about-version` | About shows the mod label and the upstream base it was built on | — |
+| `mods/ai-assistant` | AI in Settings (OpenAI-compatible endpoint, model, key in keychain) with user presets; AI menu in the reader and composer, replacing the selection in drafts | #9 |
+| `mods/hide-services` | Hides Flectar's paid Services page | #10 |
+| `mods/icloud-sync` | Optional settings sync through iCloud Drive/emailOO (no credentials) | #11 |
 | `mods/build-scripts` | `scripts/mod-install-macos.sh`: packages and installs *emailOO.app* | — |
 
 Planned: configurable shortcuts (#2), message in a new window (#3), Nextcloud
-share links instead of large attachments (#4), macOS app menu tweaks (#6).
+share links instead of large attachments (#4), macOS app menu tweaks (#6),
+full emailOO branding inside the app (#8).
 
 ## Following upstream
 
