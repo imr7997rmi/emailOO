@@ -6725,3 +6725,30 @@ msgstr "Restaurar"
 #: ui/window-chrome.slint:202 ui/window-chrome.slint:239
 msgid "Maximize"
 msgstr "Maximizar"
+
+msgid "Preview only: this window does not send yet."
+msgstr "Vista previa: esta ventana todavía no envía."
+
+msgid "Open in the composer"
+msgstr "Abrir en el redactor"
+
+msgid "To:"
+msgstr "Para:"
+
+msgid "Cc:"
+msgstr "CC:"
+
+msgid "Bcc:"
+msgstr "CCO:"
+
+msgid "Subject:"
+msgstr "Asunto:"
+
+msgid "Bold"
+msgstr "Negrita"
+
+msgid "Italic"
+msgstr "Cursiva"
+
+msgid "Underline"
+msgstr "Subrayado"

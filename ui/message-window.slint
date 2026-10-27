@@ -1,6 +1,7 @@
 // emailOO: a message opened in its own window (double-click in the list).
 // Colors come from the main window because globals are per window tree.
 import { ScrollView, VerticalBox } from "std-widgets.slint";
+import { ToolbarIconButton } from "components/controls.slint";
 
 export struct WindowEmailTile {
     image: image,
@@ -11,29 +12,6 @@ export struct WindowEmailTile {
 
 export global MessageWindowApi {
     callback open(int /* conversation id */);
-}
-
-component WindowAction inherits Rectangle {
-    in property <image> icon;
-    in property <string> tooltip;
-    in property <color> icon-color;
-    in property <color> hover-color;
-    callback clicked();
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: touch.has-hover ? root.hover-color : transparent;
-    accessible-role: button;
-    accessible-label: root.tooltip;
-    accessible-action-default => { root.clicked(); }
-    Image {
-        width: 18px;
-        height: 18px;
-        source: root.icon;
-        colorize: root.icon-color;
-        image-fit: contain;
-    }
-    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
 }
 
 export component MessageWindow inherits Window {
@@ -65,29 +43,29 @@ export component MessageWindow inherits Window {
         padding: 20px;
         spacing: 4px;
         HorizontalLayout {
-            spacing: 2px;
+            spacing: 6px;
             alignment: end;
-            WindowAction { icon: @image-url("icons/lucide/outline/reply.svg"); tooltip: @tr("Reply"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("reply"); } }
-            WindowAction { icon: @image-url("icons/lucide/outline/reply-all.svg"); tooltip: @tr("Reply all"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("reply_all"); } }
-            WindowAction { icon: @image-url("icons/lucide/outline/forward.svg"); tooltip: @tr("Forward"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("forward"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/reply.svg"); tooltip-text: @tr("Reply"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("reply"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/reply-all.svg"); tooltip-text: @tr("Reply all"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("reply_all"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/forward.svg"); tooltip-text: @tr("Forward"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("forward"); } }
             Rectangle { width: 10px; }
-            WindowAction { icon: @image-url("icons/lucide/outline/archive.svg"); tooltip: @tr("Archive message"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("archive"); } }
-            WindowAction {
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/archive.svg"); tooltip-text: @tr("Archive message"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("archive"); } }
+            ToolbarIconButton {
                 icon: root.starred ? @image-url("icons/lucide/filled/star.svg") : @image-url("icons/lucide/outline/star.svg");
-                tooltip: root.starred ? @tr("Remove star") : @tr("Star message");
+                tooltip-text: root.starred ? @tr("Remove star") : @tr("Star message");
                 icon-color: root.starred ? #f5b400 : root.muted-color;
-                hover-color: root.hover-color;
+                hover-background: root.hover-color;
                 clicked => { root.action(root.starred ? "unstar" : "star"); root.starred = !root.starred; }
             }
-            WindowAction {
+            ToolbarIconButton {
                 icon: root.unread ? @image-url("icons/lucide/filled/mail.svg") : @image-url("icons/lucide/outline/mail-open.svg");
-                tooltip: root.unread ? @tr("Mark as read") : @tr("Mark as unread");
+                tooltip-text: root.unread ? @tr("Mark as read") : @tr("Mark as unread");
                 icon-color: root.muted-color;
-                hover-color: root.hover-color;
+                hover-background: root.hover-color;
                 clicked => { root.action(root.unread ? "mark_read" : "mark_unread"); root.unread = !root.unread; }
             }
-            WindowAction { icon: @image-url("icons/lucide/outline/alert.svg"); tooltip: @tr("Move to spam"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("spam"); } }
-            WindowAction { icon: @image-url("icons/lucide/outline/trash.svg"); tooltip: @tr("Move to trash"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("trash"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/alert.svg"); tooltip-text: @tr("Move to spam"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("spam"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/trash.svg"); tooltip-text: @tr("Move to trash"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("trash"); } }
         }
         Rectangle { height: 6px; }
         Text { text: root.subject; color: root.text-color; font-size: 20px; font-weight: 600; wrap: word-wrap; }
