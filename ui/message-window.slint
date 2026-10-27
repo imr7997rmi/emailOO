@@ -50,6 +50,8 @@ export component MessageWindow inherits Window {
     in property <color> muted-color: #72736f;
     in property <color> line-color: #e4e4e0;
     in property <color> hover-color: #00000014;
+    in-out property <bool> starred: false;
+    in-out property <bool> unread: false;
     callback action(string);
 
     title: root.subject;
@@ -64,13 +66,27 @@ export component MessageWindow inherits Window {
         spacing: 4px;
         HorizontalLayout {
             spacing: 2px;
-            alignment: start;
+            alignment: end;
             WindowAction { icon: @image-url("icons/lucide/outline/reply.svg"); tooltip: @tr("Reply"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("reply"); } }
             WindowAction { icon: @image-url("icons/lucide/outline/reply-all.svg"); tooltip: @tr("Reply all"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("reply_all"); } }
             WindowAction { icon: @image-url("icons/lucide/outline/forward.svg"); tooltip: @tr("Forward"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("forward"); } }
-            Rectangle { width: 12px; }
-            WindowAction { icon: @image-url("icons/lucide/outline/archive.svg"); tooltip: @tr("Archive"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("archive"); } }
-            WindowAction { icon: @image-url("icons/lucide/outline/mail.svg"); tooltip: @tr("Mark as unread"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("mark_unread"); } }
+            Rectangle { width: 10px; }
+            WindowAction { icon: @image-url("icons/lucide/outline/archive.svg"); tooltip: @tr("Archive message"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("archive"); } }
+            WindowAction {
+                icon: root.starred ? @image-url("icons/lucide/filled/star.svg") : @image-url("icons/lucide/outline/star.svg");
+                tooltip: root.starred ? @tr("Remove star") : @tr("Star message");
+                icon-color: root.starred ? #f5b400 : root.muted-color;
+                hover-color: root.hover-color;
+                clicked => { root.action(root.starred ? "unstar" : "star"); root.starred = !root.starred; }
+            }
+            WindowAction {
+                icon: root.unread ? @image-url("icons/lucide/filled/mail.svg") : @image-url("icons/lucide/outline/mail-open.svg");
+                tooltip: root.unread ? @tr("Mark as read") : @tr("Mark as unread");
+                icon-color: root.muted-color;
+                hover-color: root.hover-color;
+                clicked => { root.action(root.unread ? "mark_read" : "mark_unread"); root.unread = !root.unread; }
+            }
+            WindowAction { icon: @image-url("icons/lucide/outline/alert.svg"); tooltip: @tr("Move to spam"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("spam"); } }
             WindowAction { icon: @image-url("icons/lucide/outline/trash.svg"); tooltip: @tr("Move to trash"); icon-color: root.muted-color; hover-color: root.hover-color; clicked => { root.action("trash"); } }
         }
         Rectangle { height: 6px; }
@@ -82,8 +98,8 @@ export component MessageWindow inherits Window {
         if root.status != "" : Text { text: root.status; color: root.muted-color; font-size: 13px; }
         ScrollView {
             vertical-stretch: 1;
-            viewport-width: root.body-width;
-            viewport-height: root.content-ratio * root.body-width + 16px;
+            content-width: root.body-width;
+            content-height: root.content-ratio * root.body-width + 16px;
             for tile in root.tiles : Image {
                 x: 0px;
                 y: tile.y * root.body-width;
