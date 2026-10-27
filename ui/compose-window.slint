@@ -3,6 +3,7 @@
 import { ComboBox, ScrollView, VerticalBox } from "std-widgets.slint";
 import { LineEdit, TextEdit, ToolbarIconButton } from "components/controls.slint";
 import { Button } from "components/button.slint";
+import { LayoutMetrics } from "design-system.slint";
 import { WindowEmailTile } from "message-window.slint";
 
 component FieldRow inherits HorizontalLayout {
@@ -81,6 +82,8 @@ export component ComposeWindow inherits Window {
         // One document: the reply is written above the quoted original, and
         // the quote stays editable to answer point by point.
         TextEdit {
+            // Drawn below the toolbar so its tooltips stay on top.
+            z: -1;
             vertical-stretch: 1;
             text <=> root.body;
             placeholder-text: @tr("Write your message…");
@@ -89,11 +92,13 @@ export component ComposeWindow inherits Window {
         HorizontalLayout {
             spacing: 8px;
             alignment: end;
-            height: 36px;
-            Button { width: self.content-width; text: @tr("Open in the composer"); clicked => { root.open-in-main-composer(); } }
+            height: LayoutMetrics.sidebar-action-height;
             Button {
-                width: self.content-width;
+                width: max(140px, self.content-width);
+                height: LayoutMetrics.sidebar-action-height;
                 text: @tr("Send");
+                icon: @image-url("icons/lucide/filled/paper-airplane.svg");
+                has-icon: true;
                 primary: true;
                 clicked => { root.notice = @tr("Preview only: this window does not send yet."); }
             }
