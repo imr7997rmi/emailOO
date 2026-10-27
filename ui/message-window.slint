@@ -13,6 +13,8 @@ export struct WindowEmailTile {
 
 export global MessageWindowApi {
     callback open(int /* conversation id */);
+    // Reply / reply_all / forward straight into the compose window.
+    callback compose(int /* conversation id */, string /* action */);
 }
 
 export component MessageWindow inherits Window {

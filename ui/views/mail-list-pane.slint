@@ -1039,6 +1039,10 @@ export component MailListPane inherits FocusScope {
                                         Menu {
                                             if TabsUi.enabled : MenuItem { title: @tr("Open in new tab"); activated => { TabsUi.open-conversation(mail-data.id, true); } }
                                             if TabsUi.enabled : MenuSeparator {}
+                                            MenuItem { title: @tr("Reply"); activated => { MessageWindowApi.compose(mail-data.id, "reply"); } }
+                                            MenuItem { title: @tr("Reply all"); activated => { MessageWindowApi.compose(mail-data.id, "reply_all"); } }
+                                            MenuItem { title: @tr("Forward"); activated => { MessageWindowApi.compose(mail-data.id, "forward"); } }
+                                            MenuSeparator {}
                                             MenuItem { title: mail-data.starred ? @tr("Remove star") : @tr("Star message"); activated => { root.message_action_for_email(mail-data.id, mail-data.starred ? "unstar" : "star"); } }
                                             MenuItem { title: mail-data.unread ? @tr("Mark as read") : @tr("Mark as unread"); activated => { root.message_action_for_email(mail-data.id, mail-data.unread ? "mark_read" : "mark_unread"); } }
                                             MenuItem { title: @tr("Archive"); activated => { root.message_action_for_email(mail-data.id, "archive"); } }

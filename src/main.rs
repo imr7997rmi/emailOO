@@ -66,6 +66,8 @@ mod theme;
 mod ui_dispatch;
 mod ui_message;
 mod message_window;
+#[cfg(target_os = "macos")]
+mod html_editor;
 mod window_chrome;
 mod window_controller;
 
