@@ -2,6 +2,7 @@
 // Colors come from the main window because globals are per window tree.
 import { ScrollView, VerticalBox } from "std-widgets.slint";
 import { ToolbarIconButton } from "components/controls.slint";
+import { ActionMenu, ActionMenuEntry } from "components/action-menu.slint";
 
 export struct WindowEmailTile {
     image: image,
@@ -66,6 +67,32 @@ export component MessageWindow inherits Window {
             }
             ToolbarIconButton { icon: @image-url("icons/lucide/outline/alert.svg"); tooltip-text: @tr("Move to spam"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("spam"); } }
             ToolbarIconButton { icon: @image-url("icons/lucide/outline/trash.svg"); tooltip-text: @tr("Move to trash"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("trash"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/filled/tag.svg"); tooltip-text: @tr("Manage labels"); icon-color: root.muted-color; hover-background: root.hover-color; clicked => { root.action("labels"); } }
+            ActionMenu {
+                icon: @image-url("icons/lucide/outline/kebab-horizontal.svg");
+                icon-color: root.muted-color;
+                idle-background: transparent;
+                tooltip-text: @tr("More message actions");
+                entries: [
+                    { id: "reply", title: @tr("Reply"), icon: @image-url("icons/lucide/outline/reply.svg") },
+                    { id: "reply_all", title: @tr("Reply all"), icon: @image-url("icons/lucide/outline/reply-all.svg") },
+                    { id: "forward", title: @tr("Forward"), icon: @image-url("icons/lucide/outline/forward.svg") },
+                    { id: root.starred ? "unstar" : "star", title: root.starred ? @tr("Remove star") : @tr("Star message"), icon: root.starred ? @image-url("icons/lucide/filled/star.svg") : @image-url("icons/lucide/outline/star.svg") },
+                    { id: "labels", title: @tr("Manage labels"), icon: @image-url("icons/lucide/filled/tag.svg") },
+                    { id: "openpgp", title: @tr("Decrypt / verify OpenPGP"), icon: @image-url("icons/lucide/outline/lock.svg") },
+                    { id: "print", title: @tr("Print message"), icon: @image-url("icons/lucide/outline/printer.svg") },
+                    { id: "browser", title: @tr("Open in browser"), icon: @image-url("icons/lucide/outline/browser.svg") },
+                    { id: root.unread ? "mark_read" : "mark_unread", title: root.unread ? @tr("Mark as read") : @tr("Mark as unread"), icon: root.unread ? @image-url("icons/lucide/outline/mail-open.svg") : @image-url("icons/lucide/outline/mail.svg") },
+                    { id: "archive", title: @tr("Archive"), icon: @image-url("icons/lucide/outline/archive.svg") },
+                    { id: "spam", title: @tr("Move to spam"), icon: @image-url("icons/lucide/outline/alert.svg") },
+                    { id: "trash", title: @tr("Move to trash"), icon: @image-url("icons/lucide/outline/trash.svg"), destructive: true },
+                ];
+                activated(id) => {
+                    if id == "star" || id == "unstar" { root.starred = id == "star"; }
+                    if id == "mark_read" || id == "mark_unread" { root.unread = id == "mark_unread"; }
+                    root.action(id);
+                }
+            }
         }
         Rectangle { height: 6px; }
         Text { text: root.subject; color: root.text-color; font-size: 20px; font-weight: 600; wrap: word-wrap; }

@@ -1,3 +1,4 @@
+import { ReaderRequests } from "../reader-requests.slint";
 import { AccountMailPreferences } from "../components/account-mail-preferences.slint";
 import { ActionMenu, ActionMenuEntry } from "../components/action-menu.slint";
 import { ZoomControls } from "../components/zoom-controls.slint";
@@ -523,6 +524,13 @@ export component MailReadingPane inherits FocusScope {
     callback toggle-mail-label(int, bool);
     callback save-mail-label(int, string, color, bool);
     callback search-mail-labels(string);
+    // emailOO: the message window asks the reader to open its label popup.
+    private property <int> labels-request: ReaderRequests.labels;
+    changed labels-request => {
+        root.label-search-query = "";
+        root.search-mail-labels("");
+        label-popup.show();
+    }
     callback select_email(int);
     callback select_thread_message(int);
     callback compose_message_action(string);
