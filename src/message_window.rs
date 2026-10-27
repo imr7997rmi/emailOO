@@ -3,6 +3,7 @@
 
 use super::*;
 use crate::message_appearance::EmailAppearance;
+use slint::winit_030::WinitWindowAccessor;
 use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
 const BODY_WIDTH: u32 = 760;
@@ -101,8 +102,34 @@ pub(super) fn register(
         window.set_text_color(theme.get_heading());
         window.set_muted_color(theme.get_secondary());
         window.set_line_color(theme.get_border_subtle());
+        window.set_hover_color(theme.get_muted_control_bg());
         window.set_body_width(BODY_WIDTH as f32);
         window.set_status("Cargando…".into());
+        {
+            // Reply / forward open the composer in the main window; the other
+            // actions apply to this conversation and close the window.
+            let app_weak = app.as_weak();
+            let self_weak = window.as_weak();
+            window.on_action(move |action| {
+                let Some(app) = app_weak.upgrade() else { return };
+                match action.as_str() {
+                    "reply" | "reply_all" | "forward" => {
+                        app.invoke_select_email(thread_id);
+                        app.invoke_compose_message_action(action);
+                        let _ = app.show();
+                        app.window().with_winit_window(|window| window.focus_window());
+                    }
+                    _ => {
+                        app.invoke_message_action_for_email(thread_id, action.clone());
+                        if action != "mark_unread"
+                            && let Some(window) = self_weak.upgrade()
+                        {
+                            let _ = window.hide();
+                        }
+                    }
+                }
+            });
+        }
         if window.show().is_err() {
             return;
         }
