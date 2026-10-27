@@ -52,11 +52,19 @@ fi
 /usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string imr7997rmi · base $base" "$plist"
 # A stable local signing identity keeps keychain access across rebuilds;
 # ad-hoc signatures change every build and macOS asks again per account.
-sign_id="${FLECTAR_SIGN_ID:-emailOO Local}"
-if security find-identity -p codesigning 2>/dev/null | grep -q "\"$sign_id\""; then
+# A self-signed certificate is enough (it does not need to be trusted).
+sign_id=""
+for candidate in ${FLECTAR_SIGN_ID:+"$FLECTAR_SIGN_ID"} "emailOO Local" "Nivvoo Dev"; do
+  if security find-identity -p codesigning 2>/dev/null | grep -q "\"$candidate\""; then
+    sign_id="$candidate"
+    break
+  fi
+done
+if [ -n "$sign_id" ]; then
+  echo "signing with \"$sign_id\""
   codesign --force --deep --sign "$sign_id" "$app"
 else
-  echo "signing identity \"$sign_id\" not found; using ad-hoc signature" >&2
+  echo "no local signing identity found; using ad-hoc signature" >&2
   codesign --force --deep --sign - "$app" >/dev/null 2>&1
 fi
 
