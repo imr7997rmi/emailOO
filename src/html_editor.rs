@@ -6,7 +6,7 @@
 use crate::ComposeWindow;
 use slint::ComponentHandle;
 use slint::winit_030::WinitWindowAccessor;
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
 use wry::dpi::{LogicalPosition, LogicalSize};
@@ -124,29 +124,30 @@ fn ensure_edit_menu() {
     }
 }
 
-/// Lays the editor over `window`'s editor area. The window must be shown.
-pub(crate) fn attach(
-    window: &ComposeWindow,
-    initial_html: &str,
-    colors: &EditorColors,
-) -> Option<HtmlEditor> {
-    ensure_edit_menu();
-    let html = page(initial_html, colors);
+enum Attach {
+    Ready(HtmlEditor),
+    /// Slint creates the native window lazily after `show()`.
+    NotYet,
+    Failed,
+}
+
+fn try_attach(window: &ComposeWindow, html: &str, colors: &EditorColors) -> Attach {
     let initial = bounds(window);
     let built = window.window().with_winit_window(|winit_window| {
         WebViewBuilder::new()
-            .with_html(html)
+            .with_html(page(html, colors))
             .with_bounds(rect(initial))
             .with_focused(true)
             // Links inside the draft must not replace the editor.
             .with_navigation_handler(|url| url.starts_with("about:"))
             .build_as_child(winit_window)
-    })?;
+    });
     let webview = match built {
-        Ok(webview) => Rc::new(webview),
-        Err(error) => {
+        None => return Attach::NotYet,
+        Some(Ok(webview)) => Rc::new(webview),
+        Some(Err(error)) => {
             eprintln!("emailOO: HTML editor unavailable: {error}");
-            return None;
+            return Attach::Failed;
         }
     };
 
@@ -165,5 +166,35 @@ pub(crate) fn attach(
             let _ = webview.set_bounds(rect(now));
         }
     });
-    Some(HtmlEditor { webview, _follow: follow })
+    Attach::Ready(HtmlEditor { webview, _follow: follow })
+}
+
+/// Lays the editor over `window`'s editor area once its native window
+/// exists, storing it in `slot`. Falls back to the plain TextEdit on failure.
+pub(crate) fn attach(
+    window: &ComposeWindow,
+    html: String,
+    colors: EditorColors,
+    slot: Rc<RefCell<Option<HtmlEditor>>>,
+) {
+    ensure_edit_menu();
+    attach_attempt(window.as_weak(), Rc::new((html, colors)), slot, 0);
+}
+
+fn attach_attempt(
+    weak: slint::Weak<ComposeWindow>,
+    content: Rc<(String, EditorColors)>,
+    slot: Rc<RefCell<Option<HtmlEditor>>>,
+    attempt: u32,
+) {
+    let Some(window) = weak.upgrade() else { return };
+    match try_attach(&window, &content.0, &content.1) {
+        Attach::Ready(editor) => *slot.borrow_mut() = Some(editor),
+        Attach::NotYet if attempt < 100 => {
+            slint::Timer::single_shot(Duration::from_millis(30), move || {
+                attach_attempt(weak, content, slot, attempt + 1);
+            });
+        }
+        _ => window.set_html_editor(false),
+    }
 }

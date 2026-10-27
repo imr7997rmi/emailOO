@@ -167,13 +167,7 @@ fn open_compose_window(
         "reply" => (sender.clone(), String::new(), prefixed("Re:", &detail.subject)),
         "reply_all" => (
             sender.clone(),
-            detail
-                .to
-                .iter()
-                .chain(detail.cc.iter())
-                .map(address)
-                .collect::<Vec<_>>()
-                .join(", "),
+            detail.cc.iter().map(address).collect::<Vec<_>>().join(", "),
             prefixed("Re:", &detail.subject),
         ),
         _ => (String::new(), String::new(), prefixed("Fwd:", &detail.subject)),
@@ -239,11 +233,8 @@ fn open_compose_window(
             line: theme.get_border_subtle(),
             link: theme.get_accent(),
         };
-        let editor = crate::html_editor::attach(&window, &html, &colors);
-        if editor.is_none() {
-            window.set_html_editor(false);
-        }
-        let editor = Rc::new(RefCell::new(editor));
+        let editor = Rc::new(RefCell::new(None));
+        crate::html_editor::attach(&window, html, colors, Rc::clone(&editor));
         window.on_format({
             let editor = Rc::clone(&editor);
             move |command| {
@@ -269,6 +260,58 @@ fn open_compose_window(
         _editor: editor,
     });
     true
+}
+
+thread_local! {
+    // Compose windows stay alive until the app quits.
+    static COMPOSE_WINDOWS: Rc<RefCell<Vec<ComposeHandle>>> = Rc::new(RefCell::new(Vec::new()));
+}
+
+fn compose_windows() -> Rc<RefCell<Vec<ComposeHandle>>> {
+    COMPOSE_WINDOWS.with(Rc::clone)
+}
+
+/// Reply / reply all / forward from the main window: opens the separate
+/// compose window for `message_id` (or the conversation's latest message).
+pub(super) fn compose_for(
+    app: &AppWindow,
+    state: &Rc<RefCell<InboxState>>,
+    runtime: &Rc<tokio::runtime::Runtime>,
+    row_id: i32,
+    message_id: Option<i64>,
+    action: &str,
+) {
+    let task = match message_id {
+        Some(message_id) => {
+            let Some(core) = state
+                .borrow()
+                .core
+                .as_ref()
+                .map(|core| core.account_preferences_core())
+            else {
+                return;
+            };
+            runtime.spawn(async move { core.get_body(message_id).await.map_err(|error| error.to_string()) })
+        }
+        None => {
+            let Some(task) = load_detail(state, runtime, row_id) else { return };
+            task
+        }
+    };
+    let weak = app.as_weak();
+    let state = Rc::clone(state);
+    let runtime = Rc::clone(runtime);
+    let action = action.to_owned();
+    let _ = slint::spawn_local(async move {
+        let Some(app) = weak.upgrade() else { return };
+        match task.await {
+            Ok(Ok(detail)) => {
+                open_compose_window(&app, &state, &runtime, &detail, &action, &compose_windows());
+            }
+            Ok(Err(error)) => app.set_render_status(UiMessage::detail("Could not open composer: {}", error)),
+            Err(error) => app.set_render_status(UiMessage::detail("Could not open composer: {}", error.to_string())),
+        }
+    });
 }
 
 /// Loads the latest message of the conversation behind `row_id`.
@@ -297,25 +340,16 @@ pub(super) fn register(
 ) {
     // Open windows stay alive until the app quits.
     let windows = Rc::new(RefCell::new(Vec::<MessageWindow>::new()));
-    let compose_windows = Rc::new(RefCell::new(Vec::<ComposeHandle>::new()));
+    let compose_windows = compose_windows();
 
     // Reply / reply all / forward from the message list's context menu.
     {
         let weak = app.as_weak();
         let state = Rc::clone(state);
         let runtime = Rc::clone(runtime);
-        let compose_windows = Rc::clone(&compose_windows);
         app.global::<MessageWindowApi>().on_compose(move |row_id, action| {
-            let Some(task) = load_detail(&state, &runtime, row_id) else { return };
-            let weak = weak.clone();
-            let state = Rc::clone(&state);
-            let runtime = Rc::clone(&runtime);
-            let compose_windows = Rc::clone(&compose_windows);
-            let _ = slint::spawn_local(async move {
-                let Ok(Ok(detail)) = task.await else { return };
-                let Some(app) = weak.upgrade() else { return };
-                open_compose_window(&app, &state, &runtime, &detail, action.as_str(), &compose_windows);
-            });
+            let Some(app) = weak.upgrade() else { return };
+            compose_for(&app, &state, &runtime, row_id, None, action.as_str());
         });
     }
 
