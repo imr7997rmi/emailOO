@@ -32,8 +32,19 @@ pub(crate) struct HtmlEditor {
 impl HtmlEditor {
     /// Runs one of the toolbar commands understood by `window.emailoo.cmd`.
     pub(crate) fn command(&self, name: &str) {
-        let name = serde_json::to_string(name).unwrap_or_default();
-        let _ = self.webview.evaluate_script(&format!("window.emailoo.cmd({name})"));
+        self.call("cmd", &[serde_json::json!(name)]);
+    }
+
+    /// Calls `window.emailoo.<function>(args…)` in the page.
+    pub(crate) fn call(&self, function: &str, args: &[serde_json::Value]) {
+        let args = args
+            .iter()
+            .map(serde_json::Value::to_string)
+            .collect::<Vec<_>>()
+            .join(",");
+        let _ = self
+            .webview
+            .evaluate_script(&format!("window.emailoo.{function}({args})"));
     }
 }
 
@@ -131,7 +142,15 @@ enum Attach {
     Failed,
 }
 
-fn try_attach(window: &ComposeWindow, html: &str, colors: &EditorColors) -> Attach {
+/// Messages posted by the page: `kind` and its JSON `value`.
+pub(crate) type OnMessage = Rc<dyn Fn(&str, &serde_json::Value)>;
+
+fn try_attach(
+    window: &ComposeWindow,
+    html: &str,
+    colors: &EditorColors,
+    on_message: &OnMessage,
+) -> Attach {
     let initial = bounds(window);
     let built = window.window().with_winit_window(|winit_window| {
         WebViewBuilder::new()
@@ -140,6 +159,15 @@ fn try_attach(window: &ComposeWindow, html: &str, colors: &EditorColors) -> Atta
             .with_focused(true)
             // Links inside the draft must not replace the editor.
             .with_navigation_handler(|url| url.starts_with("about:"))
+            .with_ipc_handler({
+                let on_message = Rc::clone(on_message);
+                move |request| {
+                    if let Ok(message) = serde_json::from_str::<serde_json::Value>(request.body()) {
+                        let kind = message["kind"].as_str().unwrap_or_default();
+                        on_message(kind, &message["value"]);
+                    }
+                }
+            })
             .build_as_child(winit_window)
     });
     let webview = match built {
@@ -176,19 +204,20 @@ pub(crate) fn attach(
     html: String,
     colors: EditorColors,
     slot: Rc<RefCell<Option<HtmlEditor>>>,
+    on_message: OnMessage,
 ) {
     ensure_edit_menu();
-    attach_attempt(window.as_weak(), Rc::new((html, colors)), slot, 0);
+    attach_attempt(window.as_weak(), Rc::new((html, colors, on_message)), slot, 0);
 }
 
 fn attach_attempt(
     weak: slint::Weak<ComposeWindow>,
-    content: Rc<(String, EditorColors)>,
+    content: Rc<(String, EditorColors, OnMessage)>,
     slot: Rc<RefCell<Option<HtmlEditor>>>,
     attempt: u32,
 ) {
     let Some(window) = weak.upgrade() else { return };
-    match try_attach(&window, &content.0, &content.1) {
+    match try_attach(&window, &content.0, &content.1, &content.2) {
         Attach::Ready(editor) => *slot.borrow_mut() = Some(editor),
         Attach::NotYet if attempt < 100 => {
             slint::Timer::single_shot(Duration::from_millis(30), move || {

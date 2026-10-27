@@ -43,6 +43,7 @@ export component ComposeWindow inherits Window {
     out property <length> editor-y: editor-area.absolute-position.y;
     out property <length> editor-width: editor-area.width;
     out property <length> editor-height: editor-area.height;
+    out property <length> ai-button-x: ai-button.absolute-position.x - editor-area.absolute-position.x;
 
 
     title: (root.subject != "" ? root.subject : @tr("New message")) + " – " + @tr("New message");
@@ -84,7 +85,7 @@ export component ComposeWindow inherits Window {
             ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-ordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Numbered list"); clicked => { root.format("number"); } }
             ToolbarIconButton { icon: @image-url("icons/lucide/outline/quote.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Quote"); clicked => { root.format("quote"); } }
             ToolbarIconButton { icon: @image-url("icons/lucide/outline/link.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Add or edit link"); clicked => { root.format("link"); } }
-            ToolbarIconButton { icon: @image-url("icons/emailoo/sparkles.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("AI"); clicked => { root.format("ai"); } }
+            ai-button := ToolbarIconButton { icon: @image-url("icons/emailoo/sparkles.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("AI"); clicked => { root.format("ai"); } }
         }
         Rectangle { height: 1px; background: root.line-color; }
 

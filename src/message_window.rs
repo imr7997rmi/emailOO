@@ -148,7 +148,7 @@ pub(super) struct ComposeHandle {
 fn open_compose_window(
     app: &AppWindow,
     state: &Rc<RefCell<InboxState>>,
-    runtime: &tokio::runtime::Runtime,
+    runtime: &Rc<tokio::runtime::Runtime>,
     detail: &flectar_mail_core::models::MessageDetail,
     action: &str,
     windows: &Rc<RefCell<Vec<ComposeHandle>>>,
@@ -233,12 +233,74 @@ fn open_compose_window(
             line: theme.get_border_subtle(),
             link: theme.get_accent(),
         };
-        let editor = Rc::new(RefCell::new(None));
-        crate::html_editor::attach(&window, html, colors, Rc::clone(&editor));
+        let editor = Rc::new(RefCell::new(None::<crate::html_editor::HtmlEditor>));
+        let on_message: crate::html_editor::OnMessage = {
+            let weak = window.as_weak();
+            let editor = Rc::downgrade(&editor);
+            let state = Rc::clone(state);
+            let runtime = Rc::clone(runtime);
+            Rc::new(move |kind: &str, value: &serde_json::Value| {
+                if kind != "ai" {
+                    return;
+                }
+                let Some(window) = weak.upgrade() else { return };
+                let index = value["preset"].as_u64().unwrap_or(u64::MAX) as usize;
+                let text = value["text"].as_str().unwrap_or_default().to_owned();
+                let Some((name, instruction)) = crate::ai_controller::preset_at(index) else { return };
+                let Some(core) = state
+                    .borrow()
+                    .core
+                    .as_ref()
+                    .map(|core| core.account_preferences_core())
+                else {
+                    window.set_notice("IA: emailOO todavía se está iniciando.".into());
+                    return;
+                };
+                window.set_notice(format!("IA · {name}…").into());
+                let task = runtime.spawn(async move {
+                    core.ai_assist(instruction, text)
+                        .await
+                        .map_err(|error| error.to_string())
+                });
+                let weak = weak.clone();
+                let editor = editor.clone();
+                let _ = slint::spawn_local(async move {
+                    let result = task
+                        .await
+                        .map_err(|error| error.to_string())
+                        .and_then(|result| result);
+                    let Some(window) = weak.upgrade() else { return };
+                    match result {
+                        Ok(answer) => {
+                            if let Some(editor) = editor.upgrade()
+                                && let Some(editor) = editor.borrow().as_ref()
+                            {
+                                editor.call("aiApply", &[serde_json::json!(answer.trim())]);
+                            }
+                            window.set_notice(SharedString::new());
+                        }
+                        Err(error) => window.set_notice(format!("IA: {error}").into()),
+                    }
+                });
+            })
+        };
+        crate::html_editor::attach(&window, html, colors, Rc::clone(&editor), on_message);
         window.on_format({
             let editor = Rc::clone(&editor);
+            let weak = window.as_weak();
             move |command| {
-                if let Some(editor) = editor.borrow().as_ref() {
+                let editor = editor.borrow();
+                let Some(editor) = editor.as_ref() else { return };
+                if command.as_str() == "ai" {
+                    let left = weak.upgrade().map(|window| window.get_ai_button_x()).unwrap_or(0.0);
+                    editor.call(
+                        "showAiMenu",
+                        &[
+                            serde_json::json!(crate::ai_controller::preset_names()),
+                            serde_json::json!(left),
+                        ],
+                    );
+                } else {
                     editor.command(command.as_str());
                 }
             }

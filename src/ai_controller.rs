@@ -62,6 +62,25 @@ fn menu_entries(presets: &[Preset]) -> ModelRc<ActionMenuEntry> {
     ModelRc::new(VecModel::from(entries))
 }
 
+thread_local! {
+    // The current presets, for the separate compose window (issue #3).
+    static CURRENT_PRESETS: RefCell<Vec<Preset>> = const { RefCell::new(Vec::new()) };
+}
+
+pub(super) fn preset_names() -> Vec<String> {
+    CURRENT_PRESETS.with(|presets| presets.borrow().iter().map(|preset| preset.name.clone()).collect())
+}
+
+/// (name, instruction) of the preset at `index`.
+pub(super) fn preset_at(index: usize) -> Option<(String, String)> {
+    CURRENT_PRESETS.with(|presets| {
+        presets
+            .borrow()
+            .get(index)
+            .map(|preset| (preset.name.clone(), preset.instruction.clone()))
+    })
+}
+
 fn preset_for(presets: &[Preset], id: &str) -> Option<Preset> {
     let index = id.strip_prefix('p')?.parse::<usize>().ok()?;
     presets.get(index).cloned()
@@ -102,6 +121,7 @@ pub(super) fn register(
             let ui = app.global::<AiUi>();
             ui.set_reader_entries(menu_entries(&parsed));
             ui.set_composer_entries(menu_entries(&parsed));
+            CURRENT_PRESETS.with(|current| *current.borrow_mut() = parsed.clone());
             *presets.borrow_mut() = parsed;
         }
     };

@@ -15,6 +15,9 @@
   #editor img { max-width: 100%; height: auto; }
   .emailoo-header { color: __MUTED__; margin-top: 16px; }
   #linkbar { display: none; position: sticky; top: 0; z-index: 1; padding: 6px 4px; background: __BG__; border-bottom: 1px solid __LINE__; }
+  #aimenu { display: none; position: fixed; top: 4px; z-index: 10; min-width: 220px; max-height: calc(100% - 16px); overflow-y: auto; padding: 4px; background: __BG__; border: 1px solid __LINE__; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+  .ai-item { padding: 6px 10px; border-radius: 6px; cursor: default; white-space: nowrap; }
+  .ai-item:hover { background: __LINE__; }
   #linkinput { flex: 1; font: inherit; color: __FG__; background: transparent; border: 1px solid __LINE__; border-radius: 6px; padding: 4px 8px; outline: none; }
 </style>
 <script>__DOMPURIFY__</script>
@@ -22,6 +25,7 @@
 </head>
 <body>
 <div id="linkbar"><input id="linkinput" type="url" spellcheck="false"></div>
+<div id="aimenu"></div>
 <div id="editor"></div>
 <script>
 (function () {
@@ -63,6 +67,30 @@
   function post(kind, value) {
     try { window.ipc.postMessage(JSON.stringify({ kind: kind, value: value })); } catch (e) {}
   }
+  // AI: the preset menu is drawn here because native views cover Slint
+  // popups. Selection → replaced; no selection → the whole text is sent and
+  // the answer replaces the reply above the quoted original.
+  var aiMenu = document.getElementById("aimenu");
+  var aiTarget = null;
+  function hideAiMenu() { aiMenu.style.display = "none"; }
+  function runAi(index) {
+    var selection = editor.getSelection();
+    var text;
+    if (selection && !selection.collapsed) {
+      aiTarget = selection.cloneRange();
+      text = editor.getSelectedText();
+    } else {
+      aiTarget = null;
+      text = root.innerText;
+    }
+    post("ai", { preset: index, text: text });
+  }
+  document.addEventListener("mousedown", function (event) {
+    if (aiMenu.style.display !== "none" && !aiMenu.contains(event.target)) { hideAiMenu(); }
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") { hideAiMenu(); }
+  });
   window.emailoo = {
     setHTML: function (html) {
       editor.setHTML(html);
@@ -92,7 +120,40 @@
       editor.focus();
     },
     selectedText: function () { return editor.getSelectedText(); },
-    replaceSelection: function (text) { editor.insertPlainText(text, false); }
+    replaceSelection: function (text) { editor.insertPlainText(text, false); },
+    showAiMenu: function (names, left) {
+      aiMenu.innerHTML = "";
+      names.forEach(function (name, index) {
+        var item = document.createElement("div");
+        item.className = "ai-item";
+        item.textContent = name;
+        // mousedown + preventDefault keeps the text selection.
+        item.addEventListener("mousedown", function (event) {
+          event.preventDefault();
+          hideAiMenu();
+          runAi(index);
+        });
+        aiMenu.appendChild(item);
+      });
+      aiMenu.style.left = Math.max(4, left) + "px";
+      aiMenu.style.display = names.length ? "block" : "none";
+    },
+    aiApply: function (text) {
+      if (aiTarget) {
+        editor.setSelection(aiTarget);
+      } else {
+        var range = document.createRange();
+        var header = root.querySelector(".emailoo-header");
+        range.setStart(root, 0);
+        if (header && header.parentNode === root) { range.setEndBefore(header); }
+        else { range.setEnd(root, root.childNodes.length); }
+        editor.setSelection(range);
+        text = text + "\n\n";
+      }
+      aiTarget = null;
+      editor.insertPlainText(text, false);
+      editor.focus();
+    }
   };
   editor.addEventListener("input", function () { post("changed", ""); });
   window.emailoo.setHTML(__INITIAL__);
