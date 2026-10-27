@@ -1,3 +1,4 @@
+import { MessageWindowApi } from "../message-window.slint";
 import { InfiniteScrollController } from "../components/infinite-scroll-controller.slint";
 import { HorizontalBox, ListView, VerticalBox } from "std-widgets.slint";
 import { EmailRow, MailDragApi, MailListEntry, MailListNavigation, MailNavigationTarget } from "../models.slint";
@@ -964,6 +965,12 @@ export component MailListPane inherits FocusScope {
                                             width: parent.width;
                                             height: parent.height;
                                             mouse-cursor: pointer;
+                                            // emailOO: double-click opens the message in its own window.
+                                            double-clicked => {
+                                                if !root.compact && !root.selection-mode {
+                                                    MessageWindowApi.open(mail-data.id);
+                                                }
+                                            }
                                             pointer-event(event) => {
                                                 // Middle-click and Ctrl/Command-click open the
                                                 // conversation in a background tab, as in a browser.

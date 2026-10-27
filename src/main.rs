@@ -68,6 +68,7 @@ mod ui_dispatch;
 mod ui_message;
 mod ai_controller;
 mod icloud_sync;
+mod message_window;
 mod window_chrome;
 mod window_controller;
 
@@ -5755,6 +5756,7 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
         platform.paths.data_dir.join("ai-presets.txt"),
     );
     icloud_sync::register(&app, &state, &runtime, platform.paths.data_dir.clone());
+    message_window::register(&app, &state, &runtime);
     apply_compose_files(&app, &compose_files.borrow());
     apply_compose_contacts(&app, &[]);
     apply_email_templates(&app, &[]);

@@ -1,0 +1,60 @@
+// emailOO: a message opened in its own window (double-click in the list).
+// Colors come from the main window because globals are per window tree.
+import { ScrollView, VerticalBox } from "std-widgets.slint";
+
+export struct WindowEmailTile {
+    image: image,
+    // Normalized against the body width, like the reader's tiles.
+    y: float,
+    height: float,
+}
+
+export global MessageWindowApi {
+    callback open(int /* conversation id */);
+}
+
+export component MessageWindow inherits Window {
+    in property <string> subject;
+    in property <string> sender;
+    in property <string> recipients;
+    in property <string> date;
+    in property <string> status: "";
+    in property <[WindowEmailTile]> tiles: [];
+    in property <float> content-ratio: 0;
+    in property <length> body-width: 760px;
+    in property <color> page-color: #ffffff;
+    in property <color> text-color: #1d1d1b;
+    in property <color> muted-color: #72736f;
+    in property <color> line-color: #e4e4e0;
+
+    title: root.subject;
+    preferred-width: root.body-width + 48px;
+    preferred-height: 860px;
+    min-width: 420px;
+    min-height: 320px;
+    background: root.page-color;
+
+    VerticalBox {
+        padding: 20px;
+        spacing: 4px;
+        Text { text: root.subject; color: root.text-color; font-size: 20px; font-weight: 600; wrap: word-wrap; }
+        Text { text: root.sender; color: root.text-color; font-size: 13px; wrap: word-wrap; }
+        Text { text: root.recipients; color: root.muted-color; font-size: 12px; wrap: word-wrap; }
+        Text { text: root.date; color: root.muted-color; font-size: 12px; }
+        Rectangle { height: 9px; Rectangle { y: 4px; height: 1px; background: root.line-color; } }
+        if root.status != "" : Text { text: root.status; color: root.muted-color; font-size: 13px; }
+        ScrollView {
+            vertical-stretch: 1;
+            viewport-width: root.body-width;
+            viewport-height: root.content-ratio * root.body-width + 16px;
+            for tile in root.tiles : Image {
+                x: 0px;
+                y: tile.y * root.body-width;
+                width: root.body-width;
+                height: tile.height * root.body-width;
+                source: tile.image;
+                image-fit: fill;
+            }
+        }
+    }
+}
