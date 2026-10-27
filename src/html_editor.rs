@@ -86,7 +86,7 @@ fn rect((x, y, width, height): (f32, f32, f32, f32)) -> Rect {
 /// Adds a standard Edit menu so Cmd+C / Cmd+V / Cmd+Z reach the web view
 /// (WKWebView only receives them through menu key equivalents).
 fn ensure_edit_menu() {
-    use objc2::MainThreadMarker;
+    use objc2::{MainThreadMarker, MainThreadOnly};
     use objc2::sel;
     use objc2_app_kit::{NSApplication, NSMenu, NSMenuItem};
     use objc2_foundation::NSString;
