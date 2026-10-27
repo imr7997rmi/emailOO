@@ -2769,3 +2769,58 @@ mod tests {
         assert_eq!(dark_opaque_pixels, 0);
     }
 }
+
+/// emailOO: render a whole message once at a fixed width, for a message
+/// opened in its own window.
+pub(crate) fn render_email_document(
+    html: &str,
+    logical_width: u32,
+    scale_factor: f32,
+    appearance: crate::message_appearance::EmailAppearance,
+) -> Result<RenderedEmail, String> {
+    let scale_factor = scale_factor.max(1.0);
+    let logical_width = logical_width.max(1);
+    let physical_width = ((logical_width as f32) * scale_factor).ceil() as u32;
+    let physical_height = ((INITIAL_HEIGHT as f32) * scale_factor).ceil() as u32;
+    let mut email = prepare_email_html_at_with_font_ctx(
+        html,
+        None,
+        physical_width,
+        physical_height,
+        scale_factor,
+        create_email_font_ctx(),
+        appearance,
+    )?;
+    email.document.set_viewport(Viewport::new(
+        physical_width,
+        physical_height,
+        scale_factor,
+        email.appearance.colors.scheme(),
+    ));
+    email.appearance.resolve(&mut email.document);
+    email.paint_cache.clear();
+    let rendered_height = content_surface_height(&email.document);
+    let rendered_physical_height = (rendered_height * scale_factor).ceil().max(1.0) as u32;
+    let last_tile = ((rendered_height / EMAIL_TILE_HEIGHT).ceil() as u32).saturating_sub(1);
+    let mut painter = None;
+    let mut size = (0, 0);
+    let mut tiles = Vec::with_capacity(last_tile as usize + 1);
+    for index in 0..=last_tile {
+        tiles.push(render_cpu_tile_cached(
+            &mut painter,
+            &mut size,
+            &mut email,
+            logical_width as f32,
+            rendered_height,
+            index,
+            scale_factor,
+        )?);
+    }
+    let links = collect_email_links(&email.document, logical_width as f32);
+    Ok(RenderedEmail {
+        tiles,
+        width: physical_width,
+        height: rendered_physical_height,
+        links,
+    })
+}

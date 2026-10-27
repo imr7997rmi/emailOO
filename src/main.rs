@@ -65,6 +65,7 @@ mod tabs;
 mod theme;
 mod ui_dispatch;
 mod ui_message;
+mod message_window;
 mod window_chrome;
 mod window_controller;
 
@@ -5737,6 +5738,7 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
     );
     let compose_templates = Rc::new(RefCell::new(Vec::<Snippet>::new()));
     account_mail_preferences::register(&app, &state, &runtime, &compose_document, &compose_editor);
+    message_window::register(&app, &state, &runtime);
     apply_compose_files(&app, &compose_files.borrow());
     apply_compose_contacts(&app, &[]);
     apply_email_templates(&app, &[]);
