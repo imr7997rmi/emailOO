@@ -46,7 +46,7 @@ fn fill(window: &MessageWindow, app: &AppWindow, detail: &flectar_mail_core::mod
         .join(", ");
     window.set_recipients(recipients.into());
     let date = Local
-        .timestamp_opt(detail.date, 0)
+        .timestamp_millis_opt(detail.date)
         .single()
         .map(|date| date.format("%d/%m/%Y %H:%M").to_string())
         .unwrap_or_default();
@@ -294,7 +294,14 @@ pub(super) fn register(
         windows.borrow_mut().push(window);
 
         let loaded_for_fill = Rc::clone(&loaded);
-        let task = runtime.spawn(async move { core.get_latest_thread_body(i64::from(thread_id)).await });
+        let conversation = state
+            .borrow()
+            .messages
+            .iter()
+            .find(|row| row.id == thread_id)
+            .and_then(|row| row.thread_id)
+            .unwrap_or(i64::from(thread_id));
+        let task = runtime.spawn(async move { core.get_latest_thread_body(conversation).await });
         let app_weak = app.as_weak();
         let _ = slint::spawn_local(async move {
             let result = task.await.map_err(|error| error.to_string());
