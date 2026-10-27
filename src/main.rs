@@ -6143,6 +6143,19 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
             return;
         }
 
+        // emailOO: replies and forwards open the separate compose window.
+        if matches!(action.as_str(), "reply" | "reply_all" | "forward") {
+            message_window::compose_for(
+                &app,
+                &state_for_message_compose,
+                &runtime_for_message_compose,
+                row.id,
+                conversation_message_id,
+                action.as_str(),
+            );
+            return;
+        }
+
         let source = match runtime_for_message_compose
             .block_on(core.load_compose_source(&row, conversation_message_id))
         {
