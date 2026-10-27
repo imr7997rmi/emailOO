@@ -167,10 +167,12 @@ slint = { version = "1.18.1", default-features = false, features = ["backend-win
 # change after creation. These AppKit bindings are already in the build.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6", default-features = false, features = ["std"] }
-objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "objc2-core-foundation", "NSButton", "NSControl", "NSResponder", "NSView", "NSWindow"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "objc2-core-foundation", "NSApplication", "NSButton", "NSControl", "NSMenu", "NSMenuItem", "NSResponder", "NSView", "NSWindow"] }
 objc2-foundation = { version = "0.3", default-features = false, features = ["std", "objc2-core-foundation", "NSAppleEventManager", "NSError", "NSGeometry", "NSString", "NSUserDefaults"] }
 # Registers the bundled sign-in agent with Login Items (macOS 13+).
 objc2-service-management = { version = "0.3", default-features = false, features = ["std", "objc2", "objc2-foundation", "SMAppService"] }
+# emailOO: HTML compose editor (system WKWebView hosting Squire).
+wry = { version = "0.57", default-features = false }
 
 # This is `desktop`; keep it in step with the `mobile` alias in build.rs.
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]

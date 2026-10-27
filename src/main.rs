@@ -69,6 +69,8 @@ mod ui_message;
 mod ai_controller;
 mod icloud_sync;
 mod message_window;
+#[cfg(target_os = "macos")]
+mod html_editor;
 mod window_chrome;
 mod window_controller;
 

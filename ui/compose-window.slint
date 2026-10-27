@@ -34,6 +34,15 @@ export component ComposeWindow inherits Window {
     in property <color> hover-color: #00000014;
     in-out property <string> notice: "";
     callback open-in-main-composer();
+    // macOS: a native WKWebView (Squire) sits over editor-area; elsewhere the
+    // plain TextEdit below is used.
+    in property <bool> html-editor: false;
+    callback format(string);
+    callback send();
+    out property <length> editor-x: editor-area.absolute-position.x;
+    out property <length> editor-y: editor-area.absolute-position.y;
+    out property <length> editor-width: editor-area.width;
+    out property <length> editor-height: editor-area.height;
 
 
     title: (root.subject != "" ? root.subject : @tr("New message")) + " – " + @tr("New message");
@@ -64,29 +73,33 @@ export component ComposeWindow inherits Window {
         HorizontalLayout {
             spacing: 6px;
             alignment: start;
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/paperclip.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Attach files"); }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/paperclip.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Attach files"); clicked => { root.format("attach"); } }
             Rectangle { width: 6px; }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/bold.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Bold"); }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/italic.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Italic"); }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/typography.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Underline"); }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/strikethrough.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Strikethrough"); }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/bold.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Bold"); clicked => { root.format("bold"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/italic.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Italic"); clicked => { root.format("italic"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/typography.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Underline"); clicked => { root.format("underline"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/strikethrough.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Strikethrough"); clicked => { root.format("strike"); } }
             Rectangle { width: 6px; }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-unordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Bulleted list"); }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-ordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Numbered list"); }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/quote.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Quote"); }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/link.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Add or edit link"); }
-            ToolbarIconButton { icon: @image-url("icons/emailoo/sparkles.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("AI"); }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-unordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Bulleted list"); clicked => { root.format("bullet"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-ordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Numbered list"); clicked => { root.format("number"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/quote.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Quote"); clicked => { root.format("quote"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/link.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Add or edit link"); clicked => { root.format("link"); } }
+            ToolbarIconButton { icon: @image-url("icons/emailoo/sparkles.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("AI"); clicked => { root.format("ai"); } }
         }
         Rectangle { height: 1px; background: root.line-color; }
 
         // One document: the reply is written above the quoted original, and
         // the quote stays editable to answer point by point.
-        TextEdit {
+        editor-area := Rectangle {
             // Drawn below the toolbar so its tooltips stay on top.
             z: -1;
             vertical-stretch: 1;
-            text <=> root.body;
-            placeholder-text: @tr("Write your message…");
+            if !root.html-editor : TextEdit {
+                width: parent.width;
+                height: parent.height;
+                text <=> root.body;
+                placeholder-text: @tr("Write your message…");
+            }
         }
         if root.notice != "" : Text { text: root.notice; color: #d04a43; font-size: 12px; }
         HorizontalLayout {
@@ -100,7 +113,7 @@ export component ComposeWindow inherits Window {
                 icon: @image-url("icons/lucide/filled/paper-airplane.svg");
                 has-icon: true;
                 primary: true;
-                clicked => { root.notice = @tr("Preview only: this window does not send yet."); }
+                clicked => { root.send(); }
             }
         }
     }

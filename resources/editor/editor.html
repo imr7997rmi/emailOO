@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- emailOO compose editor: Squire (MIT) + DOMPurify (Apache-2.0/MPL-2.0).
+     Remote resources are blocked; only inline and data: content loads. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: cid:; style-src 'unsafe-inline'; font-src data:; script-src 'unsafe-inline'">
+<style>
+  html, body { margin: 0; height: 100%; background: __BG__; color: __FG__; }
+  body { font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+  #editor { min-height: 100%; padding: 12px 4px 40px 4px; box-sizing: border-box; outline: none; word-wrap: break-word; }
+  #editor blockquote.emailoo-quote { margin: 8px 0 0 0; padding: 0; border: 0; }
+  #editor blockquote { margin: 0 0 0 0.8ex; border-left: 2px solid __LINE__; padding-left: 1ex; }
+  #editor a { color: __LINK__; }
+  #editor img { max-width: 100%; height: auto; }
+  .emailoo-header { color: __MUTED__; margin-top: 16px; }
+  #linkbar { display: none; position: sticky; top: 0; z-index: 1; padding: 6px 4px; background: __BG__; border-bottom: 1px solid __LINE__; }
+  #linkinput { flex: 1; font: inherit; color: __FG__; background: transparent; border: 1px solid __LINE__; border-radius: 6px; padding: 4px 8px; outline: none; }
+</style>
+<script>__DOMPURIFY__</script>
+<script>__SQUIRE__</script>
+</head>
+<body>
+<div id="linkbar"><input id="linkinput" type="url" spellcheck="false"></div>
+<div id="editor"></div>
+<script>
+(function () {
+  "use strict";
+  var root = document.getElementById("editor");
+  var editor = new Squire(root, {
+    blockTag: "DIV",
+    sanitizeToDOMFragment: function (html) {
+      return DOMPurify.sanitize(html, {
+        WHOLE_DOCUMENT: false,
+        RETURN_DOM_FRAGMENT: true,
+        FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form", "input", "button", "meta", "link", "base"],
+        FORBID_ATTR: ["srcset"],
+        ALLOW_UNKNOWN_PROTOCOLS: false
+      });
+    }
+  });
+  // Small inline URL bar: WKWebView has no window.prompt here.
+  function askLink() {
+    var saved = editor.getSelection();
+    var bar = document.getElementById("linkbar");
+    var input = document.getElementById("linkinput");
+    bar.style.display = "flex";
+    input.value = "https://";
+    input.focus();
+    input.select();
+    input.onkeydown = function (event) {
+      if (event.key === "Enter" || event.key === "Escape") {
+        event.preventDefault();
+        bar.style.display = "none";
+        editor.setSelection(saved);
+        if (event.key === "Enter" && input.value && input.value !== "https://") {
+          editor.makeLink(input.value);
+        }
+        editor.focus();
+      }
+    };
+  }
+  function post(kind, value) {
+    try { window.ipc.postMessage(JSON.stringify({ kind: kind, value: value })); } catch (e) {}
+  }
+  window.emailoo = {
+    setHTML: function (html) {
+      editor.setHTML(html);
+      // Caret at the very top, above the quoted original.
+      var range = document.createRange();
+      range.setStart(root.firstChild || root, 0);
+      range.collapse(true);
+      editor.setSelection(range);
+      editor.focus();
+    },
+    getHTML: function () { return editor.getHTML(); },
+    getText: function () { return root.innerText; },
+    cmd: function (name) {
+      switch (name) {
+        case "bold": editor.hasFormat("B") ? editor.removeBold() : editor.bold(); break;
+        case "italic": editor.hasFormat("I") ? editor.removeItalic() : editor.italic(); break;
+        case "underline": editor.hasFormat("U") ? editor.removeUnderline() : editor.underline(); break;
+        case "strike": editor.hasFormat("S") ? editor.removeStrikethrough() : editor.strikethrough(); break;
+        case "bullet": editor.hasFormat("UL") ? editor.removeList() : editor.makeUnorderedList(); break;
+        case "number": editor.hasFormat("OL") ? editor.removeList() : editor.makeOrderedList(); break;
+        case "quote": editor.increaseQuoteLevel(); break;
+        case "unquote": editor.decreaseQuoteLevel(); break;
+        case "link": askLink(); return;
+        case "undo": editor.undo(); break;
+        case "redo": editor.redo(); break;
+      }
+      editor.focus();
+    },
+    selectedText: function () { return editor.getSelectedText(); },
+    replaceSelection: function (text) { editor.insertPlainText(text, false); }
+  };
+  editor.addEventListener("input", function () { post("changed", ""); });
+  window.emailoo.setHTML(__INITIAL__);
+  post("ready", "");
+})();
+</script>
+</body>
+</html>
