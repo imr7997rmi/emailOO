@@ -13,9 +13,13 @@ case "$(uname -m)" in
   arm64) arch_dir="apple-silicon" ;;
   *) arch_dir="intel" ;;
 esac
-build_dir="$project_dir/../build/$arch_dir"
+build_dir="${EMAILOO_BUILD_DIR:-$HOME/Documents/AI_DEVS/emailOO/build}/$arch_dir${variant:+-$variant}"
 staging="$target_dir/macos-$profile"
-app_name="emailOO"
+# EMAILOO_VARIANT=NYX installs a separate "emailOO NYX.app" (own bundle id
+# and build folder), so an experimental branch never replaces the main app.
+variant="${EMAILOO_VARIANT:-}"
+app_name="emailOO${variant:+ $variant}"
+bundle_id="com.nivvoo.emailoo${variant:+.$(echo "$variant" | tr '[:upper:]' '[:lower:]')}"
 
 version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project_dir/Cargo.toml" | head -1)"
 base="$(git -C "$project_dir" rev-parse --short main 2>/dev/null || echo unknown)"
@@ -38,7 +42,7 @@ if [[ -f "$icon_png" ]]; then
   rm -rf "$iconset"
 fi
 /usr/libexec/PlistBuddy \
-  -c "Set :CFBundleIdentifier com.nivvoo.emailoo" \
+  -c "Set :CFBundleIdentifier $bundle_id" \
   -c "Set :CFBundleName $app_name" \
   -c "Set :CFBundleDisplayName $app_name" \
   -c "Set :CFBundleShortVersionString $version mod" \
