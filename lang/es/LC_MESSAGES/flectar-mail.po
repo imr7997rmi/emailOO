@@ -6730,3 +6730,29 @@ msgstr "Sincronizar la configuración con iCloud Drive"
 
 msgid "Keeps your accounts (without passwords), preferences, signatures and identities in iCloud Drive/emailOO so your other Macs pick them up."
 msgstr "Guarda tus cuentas (sin contraseñas), preferencias, firmas e identidades en iCloud Drive/emailOO para que tus otros Mac las recojan."
+msgid "Preview only: this window does not send yet."
+msgstr "Vista previa: esta ventana todavía no envía."
+
+msgid "Open in the composer"
+msgstr "Abrir en el redactor"
+
+msgid "To:"
+msgstr "Para:"
+
+msgid "Cc:"
+msgstr "CC:"
+
+msgid "Bcc:"
+msgstr "CCO:"
+
+msgid "Subject:"
+msgstr "Asunto:"
+
+msgid "Bold"
+msgstr "Negrita"
+
+msgid "Italic"
+msgstr "Cursiva"
+
+msgid "Underline"
+msgstr "Subrayado"
