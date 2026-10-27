@@ -89,8 +89,46 @@ fn prefixed(prefix: &str, subject: &str) -> String {
 
 /// Visual preview of composing in its own window (issue #3). Nothing is
 /// connected: "Open in the composer" hands over to the real composer.
+fn account_choices(state: &Rc<RefCell<InboxState>>, account_id: i64) -> (Vec<SharedString>, i32) {
+    let state = state.borrow();
+    let accounts = state
+        .account_configs
+        .iter()
+        .map(|account| SharedString::from(account.email.as_str()))
+        .collect::<Vec<_>>();
+    let index = state
+        .account_configs
+        .iter()
+        .position(|account| account.id == account_id)
+        .unwrap_or(0) as i32;
+    (accounts, index)
+}
+
+fn signature_names(
+    state: &Rc<RefCell<InboxState>>,
+    runtime: &tokio::runtime::Runtime,
+    account_id: i64,
+) -> Vec<SharedString> {
+    let Some(core) = state.borrow().core.as_ref().map(|core| core.account_preferences_core()) else {
+        return Vec::new();
+    };
+    runtime
+        .block_on(core.get_settings())
+        .map(|settings| {
+            settings
+                .signature_list
+                .iter()
+                .filter(|signature| signature.account_id == account_id)
+                .map(|signature| SharedString::from(signature.name.as_str()))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 fn open_compose_preview(
     app: &AppWindow,
+    state: &Rc<RefCell<InboxState>>,
+    runtime: &tokio::runtime::Runtime,
     message: &MessageWindow,
     detail: &flectar_mail_core::models::MessageDetail,
     action: &str,
@@ -105,7 +143,6 @@ fn open_compose_preview(
     window.set_line_color(theme.get_border_subtle());
     window.set_hover_color(theme.get_muted_control_bg());
     window.set_body_width(BODY_WIDTH as f32);
-    window.set_from_address(detail.to.first().map(address).unwrap_or_default().into());
     let sender = address(&detail.from);
     let (to, cc, subject) = match action {
         "reply" => (sender.clone(), String::new(), prefixed("Re:", &detail.subject)),
@@ -119,17 +156,27 @@ fn open_compose_preview(
     window.set_to(to.into());
     window.set_cc(cc.into());
     window.set_subject(subject.into());
+    let (accounts, account_index) = account_choices(state, detail.account_id);
+    window.set_accounts(ModelRc::new(VecModel::from(accounts)));
+    window.set_account_index(account_index);
+    let mut signatures = vec![SharedString::from("Sin firma")];
+    signatures.extend(signature_names(state, runtime, detail.account_id));
+    window.set_signatures(ModelRc::new(VecModel::from(signatures)));
     let recipients = detail.to.iter().map(address).collect::<Vec<_>>().join(", ");
-    window.set_quote_header(
+    let original = match (&detail.text_body, &detail.html_body) {
+        (Some(text), _) if !text.trim().is_empty() => text.clone(),
+        (_, Some(html)) => crate::email_document::fallback(html),
+        _ => detail.snippet.clone(),
+    };
+    window.set_body(
         format!(
-            "------ Mensaje original ------\nDe: {sender}\nPara: {recipients}\nFecha: {}\nAsunto: {}",
+            "\n\n------ Mensaje original ------\nDe: {sender}\nPara: {recipients}\nFecha: {}\nAsunto: {}\n\n{}",
             message.get_date(),
-            detail.subject
+            detail.subject,
+            original.trim_end()
         )
         .into(),
     );
-    window.set_tiles(message.get_tiles());
-    window.set_content_ratio(message.get_content_ratio());
     {
         let app_weak = app.as_weak();
         let self_weak = window.as_weak();
@@ -190,12 +237,14 @@ pub(super) fn register(
             let self_weak = window.as_weak();
             let loaded = Rc::clone(&loaded);
             let compose_windows = Rc::clone(&compose_windows);
+            let state = Rc::clone(&state);
+            let runtime = Rc::clone(&runtime);
             window.on_action(move |action| {
                 let Some(app) = app_weak.upgrade() else { return };
                 if matches!(action.as_str(), "reply" | "reply_all" | "forward")
                     && let (Some(message), Some(detail)) =
                         (self_weak.upgrade(), loaded.borrow().as_ref())
-                    && open_compose_preview(&app, &message, detail, action.as_str(), thread_id, &compose_windows)
+                    && open_compose_preview(&app, &state, &runtime, &message, detail, action.as_str(), thread_id, &compose_windows)
                 {
                     let _ = message.hide();
                     return;
@@ -211,6 +260,21 @@ pub(super) fn register(
                         app.invoke_compose_message_action(action);
                         let _ = app.show();
                         app.window().with_winit_window(|window| window.focus_window());
+                    }
+                    "labels" | "print" | "browser" | "openpgp" => {
+                        // These live in the main reader: show the message there.
+                        app.invoke_select_email(thread_id);
+                        let _ = app.show();
+                        app.window().with_winit_window(|window| window.focus_window());
+                        match action.as_str() {
+                            "labels" => {
+                                let requests = app.global::<ReaderRequests>();
+                                requests.set_labels(requests.get_labels().wrapping_add(1));
+                            }
+                            "print" => app.invoke_print_message(),
+                            "browser" => app.invoke_open_message_in_browser(),
+                            _ => app.global::<AccountMailPreferences>().invoke_read_message(),
+                        }
                     }
                     _ => {
                         app.invoke_message_action_for_email(thread_id, action.clone());

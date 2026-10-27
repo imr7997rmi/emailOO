@@ -1,6 +1,6 @@
 // emailOO: visual preview of composing in a separate window (issue #3).
 // Nothing is connected yet: fields and toolbar are for layout review only.
-import { ScrollView, VerticalBox } from "std-widgets.slint";
+import { ComboBox, ScrollView, VerticalBox } from "std-widgets.slint";
 import { LineEdit, TextEdit, ToolbarIconButton } from "components/controls.slint";
 import { Button } from "components/button.slint";
 import { WindowEmailTile } from "message-window.slint";
@@ -16,15 +16,15 @@ component FieldRow inherits HorizontalLayout {
 }
 
 export component ComposeWindow inherits Window {
-    in property <string> from-address;
     in-out property <string> to;
     in-out property <string> cc;
     in-out property <string> bcc;
     in-out property <string> subject;
     in-out property <string> body;
-    in property <string> quote-header;
-    in property <[WindowEmailTile]> tiles: [];
-    in property <float> content-ratio: 0;
+    in property <[string]> accounts: [];
+    in-out property <int> account-index: 0;
+    in property <[string]> signatures: [];
+    in-out property <int> signature-index: 0;
     in property <length> body-width: 760px;
     in property <color> page-color: #ffffff;
     in property <color> text-color: #1d1d1b;
@@ -34,8 +34,6 @@ export component ComposeWindow inherits Window {
     in-out property <string> notice: "";
     callback open-in-main-composer();
 
-    private property <length> editor-height: 220px;
-    private property <length> quote-height: quote-text.preferred-height + 12px;
 
     title: (root.subject != "" ? root.subject : @tr("New message")) + " – " + @tr("New message");
     preferred-width: root.body-width + 48px;
@@ -51,17 +49,11 @@ export component ComposeWindow inherits Window {
         HorizontalLayout {
             spacing: 12px;
             height: 36px;
-            Button {
-                width: self.content-width;
-                text: @tr("Send");
-                primary: true;
-                clicked => { root.notice = @tr("Preview only: this window does not send yet."); }
-            }
-            Text { horizontal-stretch: 1; text: root.from-address; color: root.text-color; font-size: 13px; vertical-alignment: center; overflow: elide; }
-            Button { width: self.content-width; text: @tr("Open in the composer"); clicked => { root.open-in-main-composer(); } }
+            Text { width: 64px; text: @tr("Account"); color: root.muted-color; font-size: 13px; vertical-alignment: center; horizontal-alignment: right; }
+            ComboBox { horizontal-stretch: 1; model: root.accounts; current-index <=> root.account-index; }
+            Text { text: @tr("Signature"); color: root.muted-color; font-size: 13px; vertical-alignment: center; }
+            ComboBox { width: 220px; model: root.signatures; current-index <=> root.signature-index; }
         }
-        if root.notice != "" : Text { text: root.notice; color: #d04a43; font-size: 12px; }
-
         FieldRow { label: @tr("To:"); value <=> root.to; label-color: root.muted-color; }
         FieldRow { label: @tr("Cc:"); value <=> root.cc; label-color: root.muted-color; }
         FieldRow { label: @tr("Bcc:"); value <=> root.bcc; label-color: root.muted-color; }
@@ -86,35 +78,24 @@ export component ComposeWindow inherits Window {
         }
         Rectangle { height: 1px; background: root.line-color; }
 
-        ScrollView {
+        // One document: the reply is written above the quoted original, and
+        // the quote stays editable to answer point by point.
+        TextEdit {
             vertical-stretch: 1;
-            content-width: root.body-width;
-            content-height: root.editor-height + root.quote-height + root.content-ratio * root.body-width + 24px;
-
-            TextEdit {
-                x: 0px;
-                y: 0px;
-                width: root.body-width;
-                height: root.editor-height;
-                text <=> root.body;
-                placeholder-text: @tr("Write your message…");
-            }
-            quote-text := Text {
-                x: 0px;
-                y: root.editor-height + 8px;
-                width: root.body-width;
-                text: root.quote-header;
-                color: root.text-color;
-                font-size: 13px;
-                wrap: word-wrap;
-            }
-            for tile in root.tiles : Image {
-                x: 0px;
-                y: root.editor-height + root.quote-height + tile.y * root.body-width;
-                width: root.body-width;
-                height: tile.height * root.body-width;
-                source: tile.image;
-                image-fit: fill;
+            text <=> root.body;
+            placeholder-text: @tr("Write your message…");
+        }
+        if root.notice != "" : Text { text: root.notice; color: #d04a43; font-size: 12px; }
+        HorizontalLayout {
+            spacing: 8px;
+            alignment: end;
+            height: 36px;
+            Button { width: self.content-width; text: @tr("Open in the composer"); clicked => { root.open-in-main-composer(); } }
+            Button {
+                width: self.content-width;
+                text: @tr("Send");
+                primary: true;
+                clicked => { root.notice = @tr("Preview only: this window does not send yet."); }
             }
         }
     }
