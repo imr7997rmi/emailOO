@@ -34,6 +34,8 @@ fn body_html(detail: &flectar_mail_core::models::MessageDetail) -> String {
 
 fn fill(window: &MessageWindow, app: &AppWindow, detail: &flectar_mail_core::models::MessageDetail) {
     window.set_subject(detail.subject.clone().into());
+    window.set_starred(detail.is_starred);
+    window.set_unread(!detail.is_read);
     window.set_sender(address(&detail.from).into());
     let recipients = detail
         .to
@@ -114,6 +116,11 @@ pub(super) fn register(
                 let Some(app) = app_weak.upgrade() else { return };
                 match action.as_str() {
                     "reply" | "reply_all" | "forward" => {
+                        // The composer lives in the main window: close this one
+                        // and bring the main window forward with the draft open.
+                        if let Some(window) = self_weak.upgrade() {
+                            let _ = window.hide();
+                        }
                         app.invoke_select_email(thread_id);
                         app.invoke_compose_message_action(action);
                         let _ = app.show();
@@ -121,7 +128,7 @@ pub(super) fn register(
                     }
                     _ => {
                         app.invoke_message_action_for_email(thread_id, action.clone());
-                        if action != "mark_unread"
+                        if matches!(action.as_str(), "archive" | "spam" | "trash")
                             && let Some(window) = self_weak.upgrade()
                         {
                             let _ = window.hide();
