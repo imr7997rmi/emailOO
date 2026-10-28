@@ -97,13 +97,15 @@ export component MessageWindow inherits Window {
             }
         }
         Rectangle { height: 6px; }
-        Text { text: root.subject; color: root.text-color; font-size: 20px; font-weight: 600; wrap: word-wrap; }
-        Text { text: root.sender; color: root.text-color; font-size: 13px; wrap: word-wrap; }
-        Text { text: root.recipients; color: root.muted-color; font-size: 12px; wrap: word-wrap; }
-        Text { text: root.date; color: root.muted-color; font-size: 12px; }
-        Rectangle { height: 9px; Rectangle { y: 4px; height: 1px; background: root.line-color; } }
-        if root.status != "" : Text { text: root.status; color: root.muted-color; font-size: 13px; }
+        Text { z: -1; text: root.subject; color: root.text-color; font-size: 20px; font-weight: 600; wrap: word-wrap; }
+        Text { z: -1; text: root.sender; color: root.text-color; font-size: 13px; wrap: word-wrap; }
+        Text { z: -1; text: root.recipients; color: root.muted-color; font-size: 12px; wrap: word-wrap; }
+        Text { z: -1; text: root.date; color: root.muted-color; font-size: 12px; }
+        Rectangle { z: -1; height: 9px; Rectangle { y: 4px; height: 1px; background: root.line-color; } }
+        if root.status != "" : Text { z: -1; text: root.status; color: root.muted-color; font-size: 13px; }
         ScrollView {
+            // Below the toolbar so its tooltips stay on top.
+            z: -1;
             vertical-stretch: 1;
             content-width: root.body-width;
             content-height: root.content-ratio * root.body-width + 16px;
