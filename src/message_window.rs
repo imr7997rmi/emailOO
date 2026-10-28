@@ -240,10 +240,24 @@ fn open_compose_window(
             let state = Rc::clone(state);
             let runtime = Rc::clone(runtime);
             Rc::new(move |kind: &str, value: &serde_json::Value| {
+                let Some(window) = weak.upgrade() else { return };
+                if kind == "pointer" {
+                    // Clears hover (and tooltips) on the Slint toolbar.
+                    window
+                        .window()
+                        .dispatch_event(slint::platform::WindowEvent::PointerExited);
+                    return;
+                }
                 if kind != "ai" {
                     return;
                 }
-                let Some(window) = weak.upgrade() else { return };
+                let show = |function: &str, text: String| {
+                    if let Some(editor) = editor.upgrade()
+                        && let Some(editor) = editor.borrow().as_ref()
+                    {
+                        editor.call(function, &[serde_json::json!(text)]);
+                    }
+                };
                 let index = value["preset"].as_u64().unwrap_or(u64::MAX) as usize;
                 let text = value["text"].as_str().unwrap_or_default().to_owned();
                 let Some((name, instruction)) = crate::ai_controller::preset_at(index) else { return };
@@ -253,10 +267,10 @@ fn open_compose_window(
                     .as_ref()
                     .map(|core| core.account_preferences_core())
                 else {
-                    window.set_notice("IA: emailOO todavía se está iniciando.".into());
+                    show("aiError", "IA: emailOO todavía se está iniciando.".to_owned());
                     return;
                 };
-                window.set_notice(format!("IA · {name}…").into());
+                show("aiBusy", format!("IA · {name}…"));
                 let task = runtime.spawn(async move {
                     core.ai_assist(instruction, text)
                         .await
@@ -269,7 +283,9 @@ fn open_compose_window(
                         .await
                         .map_err(|error| error.to_string())
                         .and_then(|result| result);
-                    let Some(window) = weak.upgrade() else { return };
+                    if weak.upgrade().is_none() {
+                        return;
+                    }
                     match result {
                         Ok(answer) => {
                             if let Some(editor) = editor.upgrade()
@@ -277,9 +293,14 @@ fn open_compose_window(
                             {
                                 editor.call("aiApply", &[serde_json::json!(answer.trim())]);
                             }
-                            window.set_notice(SharedString::new());
                         }
-                        Err(error) => window.set_notice(format!("IA: {error}").into()),
+                        Err(error) => {
+                            if let Some(editor) = editor.upgrade()
+                                && let Some(editor) = editor.borrow().as_ref()
+                            {
+                                editor.call("aiError", &[serde_json::json!(format!("IA: {error}"))]);
+                            }
+                        }
                     }
                 });
             })
