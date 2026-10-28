@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Fork helper: package a built binary as "emailOO.app", label it with
 # the mod and its upstream base, and install it in /Applications and in the
-# per-architecture build folder (~/Developer/emailOO-builds, outside iCloud). Usage:
+# per-architecture build folder (~/GitHub/emailOO-builds, outside iCloud). Usage:
 #   scripts/mod-install-macos.sh [debug|release]
 set -euo pipefail
 
@@ -17,7 +17,7 @@ staging="$target_dir/macos-$profile"
 # EMAILOO_VARIANT=NYX installs a separate "emailOO NYX.app" (own bundle id
 # and build folder), so an experimental branch never replaces the main app.
 variant="${EMAILOO_VARIANT:-}"
-build_dir="${EMAILOO_BUILD_DIR:-$HOME/Developer/emailOO-builds}/$arch_dir${variant:+-$variant}"
+build_dir="${EMAILOO_BUILD_DIR:-$HOME/GitHub/emailOO-builds}/$arch_dir${variant:+-$variant}"
 app_name="emailOO${variant:+ $variant}"
 bundle_id="com.nivvoo.emailoo${variant:+.$(echo "$variant" | tr '[:upper:]' '[:lower:]')}"
 
