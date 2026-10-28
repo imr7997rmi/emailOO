@@ -73,17 +73,30 @@
   var aiMenu = document.getElementById("aimenu");
   var aiTarget = null;
   function hideAiMenu() { aiMenu.style.display = "none"; }
-  function runAi(index) {
-    var selection = editor.getSelection();
-    var text;
-    if (selection && !selection.collapsed) {
-      aiTarget = selection.cloneRange();
-      text = editor.getSelectedText();
+  // The last selection the user made in the editor. Clicking the AI button
+  // (outside the web view) takes focus away and can clear the live one.
+  var lastRange = null;
+  function snapshot() {
+    var live = window.getSelection();
+    if (live.rangeCount && root.contains(live.anchorNode)) {
+      lastRange = live.getRangeAt(0).cloneRange();
+    }
+  }
+  root.addEventListener("mouseup", snapshot);
+  root.addEventListener("keyup", snapshot);
+  var aiText = "";
+  function captureForAi() {
+    if (lastRange && !lastRange.collapsed && root.contains(lastRange.commonAncestorContainer)) {
+      editor.setSelection(lastRange);
+      aiTarget = lastRange.cloneRange();
+      aiText = editor.getSelectedText();
     } else {
       aiTarget = null;
-      text = root.innerText;
+      aiText = root.innerText;
     }
-    post("ai", { preset: index, text: text });
+  }
+  function runAi(index) {
+    post("ai", { preset: index, text: aiText });
   }
   document.addEventListener("mousedown", function (event) {
     if (aiMenu.style.display !== "none" && !aiMenu.contains(event.target)) { hideAiMenu(); }
@@ -122,6 +135,7 @@
     selectedText: function () { return editor.getSelectedText(); },
     replaceSelection: function (text) { editor.insertPlainText(text, false); },
     showAiMenu: function (names, left) {
+      captureForAi();
       aiMenu.innerHTML = "";
       names.forEach(function (name, index) {
         var item = document.createElement("div");

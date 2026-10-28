@@ -74,18 +74,18 @@ export component ComposeWindow inherits Window {
         HorizontalLayout {
             spacing: 6px;
             alignment: start;
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/paperclip.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Attach files"); clicked => { root.format("attach"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/paperclip.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Attach files"); clicked => { root.format("attach"); } }
             Rectangle { width: 6px; }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/bold.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Bold"); clicked => { root.format("bold"); } }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/italic.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Italic"); clicked => { root.format("italic"); } }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/typography.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Underline"); clicked => { root.format("underline"); } }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/strikethrough.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Strikethrough"); clicked => { root.format("strike"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/bold.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Bold"); clicked => { root.format("bold"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/italic.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Italic"); clicked => { root.format("italic"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/typography.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Underline"); clicked => { root.format("underline"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/strikethrough.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Strikethrough"); clicked => { root.format("strike"); } }
             Rectangle { width: 6px; }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-unordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Bulleted list"); clicked => { root.format("bullet"); } }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-ordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Numbered list"); clicked => { root.format("number"); } }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/quote.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Quote"); clicked => { root.format("quote"); } }
-            ToolbarIconButton { icon: @image-url("icons/lucide/outline/link.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("Add or edit link"); clicked => { root.format("link"); } }
-            ai-button := ToolbarIconButton { icon: @image-url("icons/emailoo/sparkles.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-text: @tr("AI"); clicked => { root.format("ai"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-unordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Bulleted list"); clicked => { root.format("bullet"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/list-ordered.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Numbered list"); clicked => { root.format("number"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/quote.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Quote"); clicked => { root.format("quote"); } }
+            ToolbarIconButton { icon: @image-url("icons/lucide/outline/link.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("Add or edit link"); clicked => { root.format("link"); } }
+            ai-button := ToolbarIconButton { icon: @image-url("icons/emailoo/sparkles.svg"); icon-color: root.muted-color; hover-background: root.hover-color; tooltip-above: true; tooltip-align-left: true; tooltip-text: @tr("AI"); clicked => { root.format("ai"); } }
         }
         Rectangle { height: 1px; background: root.line-color; }
 

@@ -35,6 +35,11 @@ impl HtmlEditor {
         self.call("cmd", &[serde_json::json!(name)]);
     }
 
+    /// Gives keyboard focus back to the web view (after a toolbar click).
+    pub(crate) fn focus(&self) {
+        let _ = self.webview.focus();
+    }
+
     /// Calls `window.emailoo.<function>(args…)` in the page.
     pub(crate) fn call(&self, function: &str, args: &[serde_json::Value]) {
         let args = args

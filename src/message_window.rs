@@ -300,8 +300,10 @@ fn open_compose_window(
                             serde_json::json!(left),
                         ],
                     );
+                    editor.focus();
                 } else {
                     editor.command(command.as_str());
+                    editor.focus();
                 }
             }
         });
