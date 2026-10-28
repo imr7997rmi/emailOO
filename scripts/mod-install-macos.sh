@@ -13,11 +13,11 @@ case "$(uname -m)" in
   arm64) arch_dir="apple-silicon" ;;
   *) arch_dir="intel" ;;
 esac
-build_dir="${EMAILOO_BUILD_DIR:-$HOME/Documents/AI_DEVS/emailOO/build}/$arch_dir${variant:+-$variant}"
 staging="$target_dir/macos-$profile"
 # EMAILOO_VARIANT=NYX installs a separate "emailOO NYX.app" (own bundle id
 # and build folder), so an experimental branch never replaces the main app.
 variant="${EMAILOO_VARIANT:-}"
+build_dir="${EMAILOO_BUILD_DIR:-$HOME/Documents/AI_DEVS/emailOO/build}/$arch_dir${variant:+-$variant}"
 app_name="emailOO${variant:+ $variant}"
 bundle_id="com.nivvoo.emailoo${variant:+.$(echo "$variant" | tr '[:upper:]' '[:lower:]')}"
 
@@ -85,3 +85,31 @@ done
 lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 "$lsregister" -u "$build_dir/$app_name.app" >/dev/null 2>&1 || true
 open "/Applications/$app_name.app"
+
+# Publish the build on GitHub Releases: one rolling pre-release per branch
+# ("build-<branch>") with one zip per architecture, replaced on every build.
+# EMAILOO_PUBLISH=0 skips it.
+if [[ "${EMAILOO_PUBLISH:-1}" != 0 ]] && command -v gh >/dev/null 2>&1; then
+  repo="$(git -C "$project_dir" remote get-url origin | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')"
+  branch="$(git -C "$project_dir" rev-parse --abbrev-ref HEAD)"
+  tag="build-$(echo "$branch" | tr '/' '-')"
+  asset="$staging/emailOO${variant:+-$variant}-$arch_dir-$profile.zip"
+  rm -f "$asset"
+  ditto -c -k --keepParent "$build_dir/$app_name.app" "$asset"
+  line="- $arch_dir ($profile): $commit · $(date '+%Y-%m-%d %H:%M')"
+  if git -C "$project_dir" push -q origin "HEAD:refs/heads/$branch" 2>/dev/null; then
+    git -C "$project_dir" tag -f "$tag" HEAD >/dev/null
+    git -C "$project_dir" push -q -f origin "refs/tags/$tag"
+    if gh release view "$tag" -R "$repo" >/dev/null 2>&1; then
+      notes="$(gh release view "$tag" -R "$repo" --json body -q .body | grep -v "^- $arch_dir " || true)"
+      gh release edit "$tag" -R "$repo" --notes "$(printf '%s\n%s' "$notes" "$line")" >/dev/null
+    else
+      gh release create "$tag" -R "$repo" --prerelease --title "emailOO · $branch (última compilación)" \
+        --notes "$(printf 'Compilación automática de la rama %s.\n\n%s' "$branch" "$line")" >/dev/null
+    fi
+    gh release upload "$tag" "$asset" -R "$repo" --clobber
+    echo "published: https://github.com/$repo/releases/tag/$tag ($(basename "$asset"))"
+  else
+    echo "not published: could not push $branch to origin" >&2
+  fi
+fi
