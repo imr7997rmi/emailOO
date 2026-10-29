@@ -220,6 +220,54 @@ pub(super) fn register(
     }
 
     {
+        // Saves what is on screen, then sends a tiny request.
+        let weak = app.as_weak();
+        let state = Rc::clone(state);
+        let runtime = Rc::clone(runtime);
+        ui.on_test_provider(move || {
+            let Some(app) = weak.upgrade() else { return };
+            let ui = app.global::<AiUi>();
+            ui.invoke_save_provider();
+            if ui.get_status_is_error() {
+                return;
+            }
+            let Some(core) = full_core(&state) else { return };
+            let model = ui.get_model().to_string();
+            ui.set_busy(true);
+            ui.set_status_is_error(false);
+            ui.set_status("Probando la conexión…".into());
+            let task = runtime.spawn(async move {
+                core.ai_assist(
+                    "Responde únicamente con la palabra OK.".to_owned(),
+                    "Prueba de conexión".to_owned(),
+                )
+                .await
+            });
+            let weak = weak.clone();
+            let _ = slint::spawn_local(async move {
+                let result = task
+                    .await
+                    .map_err(|error| error.to_string())
+                    .and_then(|result| result.map_err(|error| error.to_string()));
+                let Some(app) = weak.upgrade() else { return };
+                let ui = app.global::<AiUi>();
+                ui.set_busy(false);
+                match result {
+                    Ok(answer) => {
+                        let answer: String = answer.trim().chars().take(60).collect();
+                        ui.set_status_is_error(false);
+                        ui.set_status(format!("Conexión correcta ✓ {model} respondió: «{answer}»").into());
+                    }
+                    Err(error) => {
+                        ui.set_status_is_error(true);
+                        ui.set_status(format!("La prueba falló: {error}").into());
+                    }
+                }
+            });
+        });
+    }
+
+    {
         let weak = app.as_weak();
         let path = presets_path.clone();
         let apply = apply_presets.clone();
