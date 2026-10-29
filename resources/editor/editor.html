@@ -181,6 +181,7 @@
       aiMenu.style.display = names.length ? "block" : "none";
     },
     aiBusy: function (text) { showStatus(text, false); },
+    requestSend: function () { post("send", { html: editor.getHTML(), text: root.innerText }); },
     aiError: function (text) { showStatus(text, true); },
     aiApply: function (text) {
       clearTimeout(aiStatusTimer);
