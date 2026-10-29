@@ -231,13 +231,22 @@ pub async fn authorize_with_broker(
     // Microsoft profile photos require a separate Graph token and are
     // deliberately left to the initials fallback. Google picture claims are
     // provider-scoped again before they reach the UI image loader.
-    let identity = OAuthIdentity {
+    let mut identity = OAuthIdentity {
         email: verified.email,
         display_name: verified.display_name,
         avatar_url: verified
             .avatar_url
             .and_then(|url| valid_google_avatar_url(&url)),
     };
+    // emailOO: Google often leaves `picture` out of the ID token (notably for
+    // Workspace accounts); the userinfo endpoint still returns it.
+    if provider == Provider::Gmail
+        && identity.avatar_url.is_none()
+        && let Ok(info) = google_identity_from_access_token(&tok.access_token).await
+        && info.email.eq_ignore_ascii_case(&identity.email)
+    {
+        identity.avatar_url = info.avatar_url;
+    }
 
     if tok.refresh_token.is_none() {
         let message = match provider {

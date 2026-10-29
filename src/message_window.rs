@@ -552,6 +552,11 @@ pub(super) fn register(
     let runtime = Rc::clone(runtime);
     app.global::<MessageWindowApi>().on_open(move |thread_id| {
         let Some(app) = weak.upgrade() else { return };
+        // A double-click on an overlay (Settings, the composer…) can reach the
+        // message list underneath; only open from the list itself.
+        if app.get_settings_open() || app.get_compose_open() {
+            return;
+        }
         let Some(task) = load_detail(&state, &runtime, thread_id) else { return };
         let Ok(window) = MessageWindow::new() else { return };
         let loaded = Rc::new(RefCell::new(None::<flectar_mail_core::models::MessageDetail>));
