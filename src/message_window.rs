@@ -165,11 +165,27 @@ fn open_compose_window(
     let sender = address(&detail.from);
     let (to, cc, subject) = match action {
         "reply" => (sender.clone(), String::new(), prefixed("Re:", &detail.subject)),
-        "reply_all" => (
-            sender.clone(),
-            detail.cc.iter().map(address).collect::<Vec<_>>().join(", "),
-            prefixed("Re:", &detail.subject),
-        ),
+        "reply_all" => {
+            // Everyone else on the message, without our own addresses.
+            let own = state
+                .borrow()
+                .account_configs
+                .iter()
+                .map(|account| account.email.to_lowercase())
+                .collect::<Vec<_>>();
+            let others = detail
+                .to
+                .iter()
+                .chain(detail.cc.iter())
+                .filter(|other| {
+                    let email = other.email.to_lowercase();
+                    !own.contains(&email) && email != detail.from.email.to_lowercase()
+                })
+                .map(address)
+                .collect::<Vec<_>>()
+                .join(", ");
+            (sender.clone(), others, prefixed("Re:", &detail.subject))
+        }
         _ => (String::new(), String::new(), prefixed("Fwd:", &detail.subject)),
     };
     window.set_to(to.into());
@@ -202,11 +218,81 @@ fn open_compose_window(
 
     #[cfg(target_os = "macos")]
     window.set_html_editor(true);
+    // Sending goes through the same path as the built-in composer:
+    // save a draft, queue it and send it now.
+    let mode = if forward { "forward".to_owned() } else { action.to_owned() };
+    let in_reply_to = (!forward).then_some(detail.id);
+    let send: Rc<dyn Fn(String, Option<String>)> = {
+        let weak = window.as_weak();
+        let state = Rc::clone(state);
+        let runtime = Rc::clone(runtime);
+        Rc::new(move |text: String, html: Option<String>| {
+            let Some(window) = weak.upgrade() else { return };
+            let Some(core) = state.borrow().core.clone() else {
+                window.set_notice("Conecta una cuenta antes de enviar.".into());
+                return;
+            };
+            let account = state
+                .borrow()
+                .account_configs
+                .get(usize::try_from(window.get_account_index()).unwrap_or(0))
+                .map(|account| (account.id, account.email.clone()));
+            let Some((account_id, sender_email)) = account else {
+                window.set_notice("Elige la cuenta desde la que enviar.".into());
+                return;
+            };
+            let (to, cc, bcc, subject) = (
+                window.get_to().to_string(),
+                window.get_cc().to_string(),
+                window.get_bcc().to_string(),
+                window.get_subject().to_string(),
+            );
+            let mode = mode.clone();
+            window.set_notice_error(false);
+            window.set_notice("Enviando…".into());
+            let task = runtime.spawn(async move {
+                let queued = core
+                    .send_new_message(crate::mail::ComposeMessage {
+                        draft_id: None,
+                        account_id,
+                        sender_email: Some(sender_email.as_str()),
+                        to: to.as_str(),
+                        cc: cc.as_str(),
+                        bcc: bcc.as_str(),
+                        subject: subject.as_str(),
+                        body: text.as_str(),
+                        body_html: html.as_deref(),
+                        attachments: &[],
+                        mode: mode.as_str(),
+                        in_reply_to_message_id: in_reply_to,
+                    })
+                    .await?;
+                core.wait_for_send(queued.action_id).await
+            });
+            let weak = weak.clone();
+            let _ = slint::spawn_local(async move {
+                let result = task.await.map_err(|error| error.to_string()).and_then(|result| result);
+                let Some(window) = weak.upgrade() else { return };
+                match result {
+                    Ok(()) => {
+                        window.set_notice(SharedString::new());
+                        // Same as closing it: the web view goes away too.
+                        window.window().dispatch_event(slint::platform::WindowEvent::CloseRequested);
+                    }
+                    Err(error) => {
+                        window.set_notice_error(true);
+                        window.set_notice(format!("No se pudo enviar: {error}").into());
+                    }
+                }
+            });
+        })
+    };
     window.on_send({
         let weak = window.as_weak();
+        let send = Rc::clone(&send);
         move || {
             if let Some(window) = weak.upgrade() {
-                window.set_notice("Vista previa: esta ventana todavía no envía.".into());
+                send(window.get_body().to_string(), None);
             }
         }
     });
@@ -239,6 +325,7 @@ fn open_compose_window(
             let editor = Rc::downgrade(&editor);
             let state = Rc::clone(state);
             let runtime = Rc::clone(runtime);
+            let send = Rc::clone(&send);
             Rc::new(move |kind: &str, value: &serde_json::Value| {
                 let Some(window) = weak.upgrade() else { return };
                 if kind == "pointer" {
@@ -246,6 +333,12 @@ fn open_compose_window(
                     window
                         .window()
                         .dispatch_event(slint::platform::WindowEvent::PointerExited);
+                    return;
+                }
+                if kind == "send" {
+                    let text = value["text"].as_str().unwrap_or_default().to_owned();
+                    let html = value["html"].as_str().map(str::to_owned);
+                    send(text, html);
                     return;
                 }
                 if kind != "ai" {
@@ -328,6 +421,19 @@ fn open_compose_window(
                 } else {
                     editor.command(command.as_str());
                     editor.focus();
+                }
+            }
+        });
+        window.on_send({
+            let editor = Rc::clone(&editor);
+            let weak = window.as_weak();
+            let send = Rc::clone(&send);
+            move || match editor.borrow().as_ref() {
+                Some(editor) => editor.call("requestSend", &[]),
+                None => {
+                    if let Some(window) = weak.upgrade() {
+                        send(window.get_body().to_string(), None);
+                    }
                 }
             }
         });
