@@ -6695,6 +6695,9 @@ msgstr "Restaurar predeterminados"
 msgid "Save presets"
 msgstr "Guardar presets"
 
+msgid "Test connection"
+msgstr "Probar conexión"
+
 msgid "AI is working…"
 msgstr "La IA está trabajando…"
 

@@ -168,6 +168,15 @@ fn register_desktop_events(app: &AppWindow) {
         };
         match event {
             winit::event::WindowEvent::ModifiersChanged(state) => modifiers.set(state.state()),
+            // emailOO: Cmd+, opens Settings, as in every Mac app.
+            winit::event::WindowEvent::KeyboardInput { event, .. }
+                if event.state.is_pressed()
+                    && modifiers.get().super_key()
+                    && matches!(&event.logical_key, winit::keyboard::Key::Character(key) if key.as_str() == ",") =>
+            {
+                app.set_settings_open(true);
+                return EventResult::PreventDefault;
+            }
             // Tab shortcuts work wherever focus is, as in a browser, except in
             // the composer and the calendar editor, which keep their keys.
             winit::event::WindowEvent::KeyboardInput { event, .. }

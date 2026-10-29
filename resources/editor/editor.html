@@ -95,10 +95,10 @@
   editor.setKeyHandler("Meta-k", function (_, event) { event.preventDefault(); askLink(); });
   // The pointer is over the editor: Slint does not see it leave its own
   // buttons, so their tooltips would stay on screen.
-  document.documentElement.addEventListener("mouseenter", function () { post("pointer", ""); });
-  document.addEventListener("mousemove", function once() {
-    document.removeEventListener("mousemove", once);
-    post("pointer", "");
+  var lastPointer = 0;
+  document.addEventListener("mousemove", function () {
+    var now = Date.now();
+    if (now - lastPointer > 400) { lastPointer = now; post("pointer", ""); }
   });
   // The last selection the user made in the editor. Clicking the AI button
   // (outside the web view) takes focus away and can clear the live one.

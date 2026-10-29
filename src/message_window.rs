@@ -283,9 +283,12 @@ fn open_compose_window(
                         .await
                         .map_err(|error| error.to_string())
                         .and_then(|result| result);
-                    if weak.upgrade().is_none() {
-                        return;
-                    }
+                    let Some(window) = weak.upgrade() else { return };
+                    // The pointer is usually over the editor by now; drop the
+                    // AI button's hover so its tooltip does not stay up.
+                    window
+                        .window()
+                        .dispatch_event(slint::platform::WindowEvent::PointerExited);
                     match result {
                         Ok(answer) => {
                             if let Some(editor) = editor.upgrade()

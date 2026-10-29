@@ -28,6 +28,7 @@ export global AiUi {
     in property <bool> result-for-composer: false;
 
     callback save-provider();
+    callback test-provider();
     callback save-presets();
     callback reset-presets();
     callback run-on-reader(string /* entry id */, string /* text */);
@@ -78,6 +79,7 @@ export component AiSettingsPage inherits VerticalBox {
                     vertical-alignment: center;
                     wrap: word-wrap;
                 }
+                Button { width: self.content-width; text: @tr("Test connection"); enabled: !AiUi.busy; clicked => { AiUi.test-provider(); } }
                 Button { width: self.content-width; text: @tr("Save"); primary: true; clicked => { AiUi.save-provider(); } }
             }
         }
