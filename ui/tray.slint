@@ -8,9 +8,10 @@ export component FlectarTray inherits SystemTrayIcon {
     // Trays draw at 16-44 px. The tray backends keep several decoded copies
     // and Linux sends the pixels over D-Bus, so the full app icon would cost
     // megabytes for the whole time the app sits in the tray.
-    icon: @image-url("../resources/app-icon/flectar-mail-tray.png");
-    title: @tr("Flectar Mail");
-    tooltip: @tr("Flectar Mail");
+    // emailOO: our icon, and no text next to it in the menu bar.
+    icon: @image-url("../resources/app-icon/emailoo-tray.png");
+    title: "";
+    tooltip: "emailOO";
 
     callback show_window();
     callback quit_app();
@@ -19,7 +20,7 @@ export component FlectarTray inherits SystemTrayIcon {
 
     Menu {
         MenuItem {
-            title: @tr("Show Flectar Mail");
+            title: @tr("Show emailOO");
             activated => { root.show_window(); }
         }
         MenuItem {
