@@ -697,11 +697,11 @@ msgid "Saving close behavior…"
 msgstr ""
 
 #: ui/app.slint:296
-msgid "Closing the window will now keep Flectar Mail in the tray."
+msgid "Closing the window will now keep emailOO in the tray."
 msgstr ""
 
 #: ui/app.slint:297
-msgid "Closing the window will now quit Flectar Mail."
+msgid "Closing the window will now quit emailOO."
 msgstr ""
 
 #: ui/app.slint:298
@@ -709,11 +709,11 @@ msgid "Could not save close behavior: {}"
 msgstr ""
 
 #: ui/app.slint:299
-msgid "Flectar Mail will start when you sign in."
+msgid "emailOO will start when you sign in."
 msgstr ""
 
 #: ui/app.slint:300
-msgid "Flectar Mail will no longer start when you sign in."
+msgid "emailOO will no longer start when you sign in."
 msgstr ""
 
 #: ui/app.slint:301
@@ -721,7 +721,7 @@ msgid "Could not change startup behavior: {}"
 msgstr ""
 
 #: ui/app.slint:302
-msgid "Allow Flectar Mail under Login Items in System Settings to finish."
+msgid "Allow emailOO under Login Items in System Settings to finish."
 msgstr ""
 
 #: ui/app.slint:307
@@ -875,7 +875,7 @@ msgid "Connect an account before creating a backup."
 msgstr ""
 
 #: ui/app.slint:348
-msgid "Export Flectar Mail account backup"
+msgid "Export emailOO account backup"
 msgstr ""
 
 #: ui/app.slint:349
@@ -916,7 +916,7 @@ msgid "Creating verified database snapshot…"
 msgstr ""
 
 #: ui/app.slint:358
-msgid "All local Flectar Mail data was deleted."
+msgid "All local emailOO data was deleted."
 msgstr ""
 
 #: ui/app.slint:359
@@ -1035,11 +1035,11 @@ msgid "Calendar update failed: {}"
 msgstr ""
 
 #: ui/app.slint:398
-msgid "Only events created in Flectar Mail can be edited."
+msgid "Only events created in emailOO can be edited."
 msgstr ""
 
 #: ui/app.slint:399
-msgid "Only events created in Flectar Mail can be deleted."
+msgid "Only events created in emailOO can be deleted."
 msgstr ""
 
 #: ui/app.slint:400
@@ -1623,7 +1623,7 @@ msgstr ""
 #: ui/app.slint:568 ui/components/workspace-navigation.slint:854
 #: ui/app.slint:568 ui/components/workspace-navigation.slint:854 ui/tray.slint:12 ui/tray.slint:13
 #: ui/app.slint:568 ui/components/workspace-navigation.slint:854 ui/tray.slint:12 ui/tray.slint:13
-msgid "Flectar Mail"
+msgid "emailOO"
 msgstr ""
 
 #: ui/app.slint:1212 ui/app.slint:1225
@@ -1673,7 +1673,7 @@ msgid "Mailbox startup failed"
 msgstr ""
 
 #: ui/app.slint:2320
-msgid "Flectar Mail could not open local storage"
+msgid "emailOO could not open local storage"
 msgstr ""
 
 #: ui/app.slint:2333
@@ -1808,7 +1808,7 @@ msgstr ""
 #: ui/components/account-mail-preferences.slint:169
 msgid ""
 "Add an alias or another address your mail server lets you send from. The "
-"server decides when you send; Flectar shows whether it accepted the last "
+"server decides when you send; emailOO shows whether it accepted the last "
 "message."
 msgstr ""
 
@@ -2232,7 +2232,7 @@ msgid "Default calendar"
 msgstr ""
 
 #: ui/components/calendar.slint:464
-msgid "Created in Flectar Mail"
+msgid "Created in emailOO"
 msgstr ""
 
 #: ui/components/calendar.slint:464
@@ -2719,7 +2719,7 @@ msgstr ""
 
 #: ui/components/oauth-browser-help.slint:73
 msgid ""
-"Flectar could not reach the system browser from this app environment. Open "
+"emailOO could not reach the system browser from this app environment. Open "
 "the link again or copy it into a browser on this device."
 msgstr ""
 
@@ -3461,7 +3461,7 @@ msgid "No incoming mail server is configured."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:78
-msgid "The incoming server {} uses a protocol Flectar Mail does not support."
+msgid "The incoming server {} uses a protocol emailOO does not support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:79
@@ -3469,7 +3469,7 @@ msgid "No outgoing mail server is configured."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:80
-msgid "The outgoing server {} uses a protocol Flectar Mail does not support."
+msgid "The outgoing server {} uses a protocol emailOO does not support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:81
@@ -3486,48 +3486,48 @@ msgstr ""
 
 #: ui/dialogs/import-dialog.slint:83
 msgid ""
-"{} keeps your password off its unencrypted connection, but Flectar Mail "
+"{} keeps your password off its unencrypted connection, but emailOO "
 "would send it in the clear. Turn on SSL/TLS or STARTTLS for this server "
 "first."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:85
 msgid ""
-"The incoming server connects without signing in, which Flectar Mail does not "
+"The incoming server connects without signing in, which emailOO does not "
 "support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:86
 msgid ""
-"The incoming server signs in with a client certificate, which Flectar Mail "
+"The incoming server signs in with a client certificate, which emailOO "
 "does not support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:87
 msgid ""
-"The incoming server signs in with {}, which Flectar Mail does not support."
+"The incoming server signs in with {}, which emailOO does not support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:88
 msgid ""
-"The outgoing server sends mail without signing in, which Flectar Mail does "
+"The outgoing server sends mail without signing in, which emailOO does "
 "not support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:89
 msgid ""
-"The outgoing server signs in with a client certificate, which Flectar Mail "
+"The outgoing server signs in with a client certificate, which emailOO "
 "does not support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:90
 msgid ""
-"The outgoing server signs in with {}, which Flectar Mail does not support."
+"The outgoing server signs in with {}, which emailOO does not support."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:91
 msgid ""
-"The outgoing server signs in as {}. Flectar Mail uses one sign-in for both "
+"The outgoing server signs in as {}. emailOO uses one sign-in for both "
 "servers."
 msgstr ""
 
@@ -3565,7 +3565,7 @@ msgstr ""
 
 #: ui/dialogs/import-dialog.slint:99
 msgid ""
-"Flectar Mail cannot use browser sign-in for {}. Sign in with an app password."
+"emailOO cannot use browser sign-in for {}. Sign in with an app password."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:100
@@ -3734,7 +3734,7 @@ msgstr ""
 #: ui/dialogs/import-dialog.slint:377
 msgid ""
 "Supported: Thunderbird for Android and K-9 Mail settings (.k9s), Thunderbird "
-"profile exports (.zip), profile folders and prefs.js, and Flectar Mail "
+"profile exports (.zip), profile folders and prefs.js, and emailOO "
 "backups (.json)."
 msgstr ""
 
@@ -3767,7 +3767,7 @@ msgid "Import {}"
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:457
-msgid "Already in Flectar Mail"
+msgid "Already in emailOO"
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:458
@@ -3805,9 +3805,9 @@ msgid "No accounts were imported."
 msgstr ""
 
 #: ui/dialogs/import-dialog.slint:502
-msgid "One account was already in Flectar Mail and was left unchanged."
+msgid "One account was already in emailOO and was left unchanged."
 msgid_plural ""
-"{n} accounts were already in Flectar Mail and were left unchanged."
+"{n} accounts were already in emailOO and were left unchanged."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -3934,7 +3934,7 @@ msgstr ""
 
 #: ui/dialogs/rendering-info-dialog.slint:124
 msgid ""
-"Flectar Mail uses a completely new email renderer built in Rust. It is still "
+"emailOO uses a completely new email renderer built in Rust. It is still "
 "in its early stages, so some emails may not render correctly."
 msgstr ""
 
@@ -3986,7 +3986,7 @@ msgid "Calculating local storage…"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:210
-msgid "{} used by Flectar Mail"
+msgid "{} used by emailOO"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:211
@@ -4300,7 +4300,7 @@ msgid "Follow your device language when a translation is available."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1154
-msgid "Choose the language used throughout Flectar Mail."
+msgid "Choose the language used throughout emailOO."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1164
@@ -4368,7 +4368,7 @@ msgid "Keep running in system tray"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1272
-msgid "Closing the window hides Flectar Mail while mail continues syncing."
+msgid "Closing the window hides emailOO while mail continues syncing."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1273
@@ -4380,11 +4380,11 @@ msgid "Start automatically"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1300
-msgid "Starts Flectar Mail in the system tray when you sign in."
+msgid "Starts emailOO in the system tray when you sign in."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1300
-msgid "Opens Flectar Mail when you sign in."
+msgid "Opens emailOO when you sign in."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1301
@@ -4428,7 +4428,7 @@ msgid "Renderer"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1381
-msgid "Changes take effect after restarting Flectar Mail."
+msgid "Changes take effect after restarting emailOO."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1381
@@ -4665,7 +4665,7 @@ msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1964
 msgid ""
-"Choose who saves sent mail. Use Flectar if your server does not save a copy."
+"Choose who saves sent mail. Use emailOO if your server does not save a copy."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1965
@@ -4677,7 +4677,7 @@ msgid "Server saves a copy"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1965
-msgid "Flectar saves a copy"
+msgid "emailOO saves a copy"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1979
@@ -4685,7 +4685,7 @@ msgid "Keep mail on the server"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1983
-msgid "Flectar Mail never removes mail from the server."
+msgid "emailOO never removes mail from the server."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:1984
@@ -4800,7 +4800,7 @@ msgid "Connect"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2120
-msgid "See what Flectar Mail stores locally and manage the data on this device."
+msgid "See what emailOO stores locally and manage the data on this device."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2146
@@ -4876,7 +4876,7 @@ msgid "Delete everything"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2190
-msgid "Choose how Flectar Mail gets your attention."
+msgid "Choose how emailOO gets your attention."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2217
@@ -4976,12 +4976,12 @@ msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2287
 msgid ""
-"Optional paid services from Flectar. Flectar Mail stays free and works "
+"Optional paid services from emailOO. emailOO stays free and works "
 "without them."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2292
-msgid "Flectar account"
+msgid "emailOO account"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2292
@@ -4990,12 +4990,12 @@ msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2294
 msgid ""
-"A Flectar account is only needed for these optional services. Learn more at "
+"A emailOO account is only needed for these optional services. Learn more at "
 "flectar.com/mail."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2299
-msgid "Sign in with Flectar"
+msgid "Sign in with emailOO"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2299
@@ -5030,7 +5030,7 @@ msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2320
 msgid ""
-"Your messages stay with your mail provider. Sync only carries your Flectar "
+"Your messages stay with your mail provider. Sync only carries your emailOO "
 "Mail setup."
 msgstr ""
 
@@ -5043,7 +5043,7 @@ msgid "Mailboxes on your own domain"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2337
-msgid "Professional addresses such as you@yourcompany.com, hosted by Flectar."
+msgid "Professional addresses such as you@yourcompany.com, hosted by emailOO."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2339
@@ -5055,7 +5055,7 @@ msgid "Create and manage mailboxes for your team"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2341
-msgid "New mailboxes appear in Flectar Mail automatically"
+msgid "New mailboxes appear in emailOO automatically"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2343
@@ -5069,11 +5069,11 @@ msgid ""
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2374
-msgid "Flectar Mail, its makers, and its community."
+msgid "emailOO, its makers, and its community."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2390 ui/views/onboarding-view.slint:120
-msgid "Flectar Mail logo"
+msgid "emailOO logo"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2410
@@ -5089,11 +5089,11 @@ msgid "Credits"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2433
-msgid "Built by Flectar with help from the open-source community."
+msgid "Built by emailOO with help from the open-source community."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2443
-msgid "Flectar"
+msgid "emailOO"
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2444
@@ -5118,7 +5118,7 @@ msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:2468
 msgid ""
-"Flectar Mail is released under the GNU Affero General Public License v3.0 "
+"emailOO is released under the GNU Affero General Public License v3.0 "
 "only."
 msgstr ""
 
@@ -5328,7 +5328,7 @@ msgstr ""
 #: ui/dialogs/settings-dialog.slint:3067
 msgid ""
 "This removes every account, downloaded message, calendar, contact, "
-"preference, and credential stored by Flectar Mail on this device."
+"preference, and credential stored by emailOO on this device."
 msgstr ""
 
 #: ui/dialogs/settings-dialog.slint:3069
@@ -5398,7 +5398,7 @@ msgid "Keep profile"
 msgstr ""
 
 #: ui/tray.slint:22
-msgid "Show Flectar Mail"
+msgid "Show emailOO"
 msgstr ""
 
 #: ui/tray.slint:26
@@ -6545,4 +6545,100 @@ msgstr ""
 
 #: ui/window-chrome.slint:202 ui/window-chrome.slint:239
 msgid "Maximize"
+msgstr ""
+
+msgid "Offline downloads require local mail data."
+msgstr ""
+
+msgid "Updating offline download settings…"
+msgstr ""
+
+msgid "Offline download settings updated."
+msgstr ""
+
+msgid "Could not update offline downloads: {}"
+msgstr ""
+
+msgid "Shortcut changes are active for this session."
+msgstr ""
+
+msgid "Could not read the current settings."
+msgstr ""
+
+msgid "Shortcuts saved."
+msgstr ""
+
+msgid "Could not save shortcuts: {}"
+msgstr ""
+
+msgid "Nextcloud requires local mail data."
+msgstr ""
+
+msgid "Nextcloud settings saved."
+msgstr ""
+
+msgid "Could not save Nextcloud settings: {}"
+msgstr ""
+
+
+
+
+msgid "Nextcloud file"
+msgstr ""
+
+msgid "This file was detected in your Nextcloud storage."
+msgstr ""
+
+msgid "Use password"
+msgstr ""
+
+msgid "Expires:"
+msgstr ""
+
+msgid "Generate"
+msgstr ""
+
+msgid "Attach to message"
+msgstr ""
+
+msgid "Create cloud download link"
+msgstr ""
+
+msgid "1 day"
+msgstr ""
+
+msgid "No expiry"
+msgstr ""
+
+msgid "No preview available for this file."
+msgstr ""
+
+msgid "Replies"
+msgstr ""
+
+msgid "Choose where Reply, Reply all and Forward open."
+msgstr ""
+
+msgid "In a new window"
+msgstr ""
+
+msgid "In the main window"
+msgstr ""
+
+msgid "Reply preference updated for this session."
+msgstr ""
+
+msgid "Reply preference saved."
+msgstr ""
+
+msgid "Could not save reply preference: {}"
+msgstr ""
+
+msgid "Reply in a tab"
+msgstr ""
+
+msgid "Reply all in a tab"
+msgstr ""
+
+msgid "Forward in a tab"
 msgstr ""

@@ -571,6 +571,31 @@ export component MailReadingPane inherits FocusScope {
         enabled: root.message-keys;
         activated => { root.message_action(root.trash_view ? "delete_permanently" : "trash"); }
     }
+    KeyBinding {
+        keys: Shortcuts.reply;
+        enabled: root.message-keys && !root.selected_is_draft;
+        activated => { root.compose_message_action("reply"); }
+    }
+    KeyBinding {
+        keys: Shortcuts.reply-all;
+        enabled: root.message-keys && !root.selected_is_draft;
+        activated => { root.compose_message_action("reply_all"); }
+    }
+    KeyBinding {
+        keys: Shortcuts.forward;
+        enabled: root.message-keys;
+        activated => { root.compose_message_action("forward"); }
+    }
+    KeyBinding {
+        keys: Shortcuts.mark-read;
+        enabled: root.message-keys;
+        activated => { root.message_action("mark_read"); }
+    }
+    KeyBinding {
+        keys: Shortcuts.mark-unread;
+        enabled: root.message-keys;
+        activated => { root.message_action("mark_unread"); }
+    }
 
     private property <bool> viewport-pending: false;
     private property <int> transition-message-id: EmailReader.message-id;
@@ -2092,7 +2117,7 @@ export component MailReadingPane inherits FocusScope {
                         root.copy_email_status("Copied HTML source");
                     }
                     report-issue => {
-                        root.open_email_link("https://github.com/flectar/mail/issues/new?title=Email%20rendering%20issue&body=%23%23%20What%20looked%20wrong%3F%0A%0A%23%23%20Email%20HTML%20source%0A%3C!--%20Remove%20private%20information%20before%20pasting.%20--%3E%0A");
+                        root.open_email_link("https://github.com/imr7997rmi/emailOO/issues/new?title=Email%20rendering%20issue&body=%23%23%20What%20looked%20wrong%3F%0A%0A%23%23%20Email%20HTML%20source%0A%3C!--%20Remove%20private%20information%20before%20pasting.%20--%3E%0A");
                     }
                 }
 }

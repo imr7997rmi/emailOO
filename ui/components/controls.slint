@@ -383,6 +383,11 @@ export component IconButton inherits Rectangle {
 
     width: 32px;
     height: 32px;
+    // Raise the whole button while its tooltip is visible: a child's z-index
+    // is scoped to the button, so later siblings would paint over the tooltip.
+    z: (root.tooltip-text != "" && (IconButtonInput.keyboard ? keyboard.has-focus : hit-area.has-hover))
+        ? 1000
+        : 0;
     border-radius: LayoutMetrics.corner-radius - 2px;
     private property <color> fill-color: root.primary
         ? (hit-area.pressed ? root.primary-pressed-background : hit-area.has-hover ? root.primary-hover-background : root.primary-background)

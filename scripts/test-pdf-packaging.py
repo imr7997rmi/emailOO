@@ -109,7 +109,7 @@ class PackagingTests(unittest.TestCase):
             for name in (
                 "scripts/package-macos.sh",
                 "platform/macos/Info.plist.in",
-                "platform/macos/com.flectar.mail.login.plist",
+                "platform/macos/com.nivvoo.emailoo.login.plist",
                 "LICENSE",
                 "THIRD_PARTY_NOTICES.md",
                 "resources/fonts/google-sans-flex/OFL.txt",
@@ -199,7 +199,7 @@ class PackagingTests(unittest.TestCase):
                     self.assertTrue((app / "Resources/Licenses/PDFium/build.json").is_file())
                     self.assertFalse((app / "MacOS/libpdfium.dylib").exists())
                     self.assertTrue(
-                        (app / "Library/LaunchAgents/com.flectar.mail.login.plist").is_file()
+                        (app / "Library/LaunchAgents/com.nivvoo.emailoo.login.plist").is_file()
                     )
                     self.assertTrue((output_dir / f"flectar-mail-macos-{architecture}.zip").is_file())
                     self.assertTrue((output_dir / f"flectar-mail-macos-{architecture}.dmg").is_file())

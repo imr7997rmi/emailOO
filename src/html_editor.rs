@@ -27,6 +27,7 @@ pub(crate) struct EditorColors {
 pub(crate) struct HtmlEditor {
     webview: Rc<WebView>,
     _follow: slint::Timer,
+    visible: Rc<Cell<bool>>,
 }
 
 impl HtmlEditor {
@@ -38,6 +39,26 @@ impl HtmlEditor {
     /// Gives keyboard focus back to the web view (after a toolbar click).
     pub(crate) fn focus(&self) {
         let _ = self.webview.focus();
+    }
+
+    /// Re-applies the theme colors without reloading the draft.
+    pub(crate) fn set_theme(&self, colors: &EditorColors) {
+        self.call(
+            "setTheme",
+            &[
+                serde_json::json!(css(colors.background)),
+                serde_json::json!(css(colors.text)),
+                serde_json::json!(css(colors.muted)),
+                serde_json::json!(css(colors.line)),
+                serde_json::json!(css(colors.link)),
+            ],
+        );
+    }
+
+    /// Hides the native web view while a Slint dialog needs to be on top.
+    /// The follow timer restores it when `visible` becomes true again.
+    pub(crate) fn set_visible(&self, visible: bool) {
+        self.visible.set(visible);
     }
 
     /// Calls `window.emailoo.<function>(args…)` in the page.
@@ -187,19 +208,28 @@ fn try_attach(
     // Follow the editor area while the window is resized.
     let follow = slint::Timer::default();
     let last = Cell::new(initial);
+    let visible = Rc::new(Cell::new(true));
+    let visible_for_follow = Rc::clone(&visible);
     let window_weak = window.as_weak();
     let webview_weak = Rc::downgrade(&webview);
     follow.start(slint::TimerMode::Repeated, Duration::from_millis(60), move || {
         let (Some(window), Some(webview)) = (window_weak.upgrade(), webview_weak.upgrade()) else {
             return;
         };
+        if !visible_for_follow.get() {
+            if last.get() != (0.0, 0.0, 0.0, 0.0) {
+                last.set((0.0, 0.0, 0.0, 0.0));
+                let _ = webview.set_bounds(rect((0.0, 0.0, 0.0, 0.0)));
+            }
+            return;
+        }
         let now = bounds(&window);
         if now != last.get() {
             last.set(now);
             let _ = webview.set_bounds(rect(now));
         }
     });
-    Attach::Ready(HtmlEditor { webview, _follow: follow })
+    Attach::Ready(HtmlEditor { webview, _follow: follow, visible })
 }
 
 /// Lays the editor over `window`'s editor area once its native window

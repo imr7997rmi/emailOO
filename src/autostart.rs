@@ -546,10 +546,9 @@ mod registry {
 use login_item as imp;
 
 /// A launch agent inside the application bundle, registered through
-/// `SMAppService`. macOS lists it under Login Items attributed to Flectar
-/// Mail, may ask the user to approve it, and reports when the user turns it
+/// `SMAppService`. macOS lists it under Login Items attributed to emailOO, may ask the user to approve it, and reports when the user turns it
 /// off there. `scripts/package-macos.sh` installs
-/// `platform/macos/com.flectar.mail.login.plist` into
+/// `platform/macos/com.nivvoo.emailoo.login.plist` into
 /// `Contents/Library/LaunchAgents`, so it can only be registered from a
 /// bundle.
 #[cfg(target_os = "macos")]
@@ -560,7 +559,7 @@ mod login_item {
     use objc2_service_management::{SMAppService, SMAppServiceStatus};
     use std::{io, path::Path};
 
-    const AGENT: &str = "com.flectar.mail.login.plist";
+    const AGENT: &str = "com.nivvoo.emailoo.login.plist";
 
     fn service() -> Retained<SMAppService> {
         // SAFETY: the name refers to a property list in the bundle's

@@ -407,7 +407,6 @@ fn create_default_app_menu(menu_bar: &muda::Menu) -> Result<(), i_slint_core::ap
                 &muda::PredefinedMenuItem::separator(),
                 &muda::PredefinedMenuItem::services(None),
                 &muda::PredefinedMenuItem::separator(),
-                &muda::PredefinedMenuItem::hide(None),
                 &muda::PredefinedMenuItem::hide_others(None),
                 &muda::PredefinedMenuItem::show_all(None),
                 &muda::PredefinedMenuItem::separator(),

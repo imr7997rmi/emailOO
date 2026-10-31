@@ -27,6 +27,7 @@ pub mod migration;
 pub mod mime;
 pub mod models;
 pub mod net;
+pub mod nextcloud;
 pub mod oauth;
 pub mod pop3;
 pub mod queue;
@@ -54,6 +55,7 @@ use crate::oauth::tokens::TokenProvider;
 use crate::sync::engine::{AccountHandle, SyncCmd, SyncCtx, spawn_account};
 use rusqlite::OptionalExtension;
 use std::collections::{HashMap, HashSet};
+use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -1136,6 +1138,102 @@ impl Core {
         }
         self.bus.emit(CoreEvent::MailUpdated { thread_ids: vec![] });
         Ok(())
+    }
+
+    /// Choose what an account keeps on this device for offline use (#12).
+    pub async fn set_account_download_scope(
+        &self,
+        account_id: i64,
+        scope: DownloadScope,
+        attachment_limit_mb: i64,
+    ) -> Result<()> {
+        let settings = self
+            .db
+            .write(move |conn| {
+                let tx = conn.transaction()?;
+                let mut config = repo::accounts::get_config(&tx, account_id)?
+                    .ok_or_else(|| CoreError::NotFound(format!("account {account_id}")))?;
+                config.settings.download_scope = scope;
+                config.settings.download_attachment_limit_mb = attachment_limit_mb.clamp(0, 10_000);
+                repo::accounts::set_settings(&tx, account_id, &config.settings)?;
+                tx.commit()?;
+                Ok(config.settings)
+            })
+            .await?;
+        if let Some(handle) = self.handles.read().await.get(&account_id).cloned() {
+            handle.update_settings(settings);
+        }
+        self.bus.emit(CoreEvent::MailUpdated { thread_ids: vec![] });
+        Ok(())
+    }
+
+    /// Save the Nextcloud server/account used for public share links. The app
+    /// password goes to the keychain, never to the settings file.
+    pub async fn set_nextcloud_settings(
+        &self,
+        url: String,
+        username: String,
+        password: Option<String>,
+        local_path: String,
+        remote_path: String,
+    ) -> Result<()> {
+        if let Some(password) = password.filter(|value| !value.is_empty()) {
+            credentials::store_async(
+                self.credentials.clone(),
+                0,
+                credentials::Slot::NextcloudPassword,
+                password.to_owned(),
+            )
+            .await?;
+        }
+        let mut settings = self.get_settings().await?;
+        settings.nextcloud_url = url;
+        settings.nextcloud_username = username;
+        settings.nextcloud_local_path = local_path;
+        settings.nextcloud_remote_path = remote_path;
+        self.set_settings(settings).await
+    }
+
+    /// Create a public Nextcloud link for a local file (#4).
+    pub async fn create_nextcloud_share(
+        &self,
+        file_path: String,
+        password: Option<String>,
+        expire_days: Option<u32>,
+    ) -> Result<String> {
+        let settings = self.get_settings().await?;
+        let (local_path, remote_path) = if settings.nextcloud_local_path.trim().is_empty() {
+            crate::nextcloud::detect_folder().unwrap_or_default()
+        } else {
+            (
+                settings.nextcloud_local_path.clone(),
+                settings.nextcloud_remote_path.clone(),
+            )
+        };
+        if settings.nextcloud_url.trim().is_empty() {
+            return Err(CoreError::Other(
+                "Configure Nextcloud in Settings before inserting a link".into(),
+            ));
+        }
+        let login_password = credentials::load_async(
+            self.credentials.clone(),
+            0,
+            credentials::Slot::NextcloudPassword,
+        )
+        .await
+        .unwrap_or_default();
+        let config = crate::nextcloud::NextcloudConfig {
+            url: settings.nextcloud_url,
+            username: settings.nextcloud_username,
+            password: login_password,
+            local_path,
+            remote_path,
+        };
+        let options = crate::nextcloud::ShareOptions {
+            password: password.filter(|value| !value.is_empty()),
+            expire_days,
+        };
+        crate::nextcloud::create_public_share(&config, Path::new(&file_path), &options).await
     }
 
     pub async fn test_connection(&self, args: &AddPasswordAccountArgs) -> ConnectionTestResult {

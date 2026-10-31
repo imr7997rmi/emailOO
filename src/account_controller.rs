@@ -262,6 +262,8 @@ pub(super) fn apply_connected_accounts(
                 smtp_host: config.smtp_host.clone().into(),
                 smtp_port: config.smtp_port.to_string().into(),
                 mail_history: config.settings.mail_history.as_str().into(),
+                download_scope: config.settings.download_scope.as_str().into(),
+                download_attachment_limit_mb: i32::try_from(config.settings.download_attachment_limit_mb).unwrap_or(10),
                 sent_copy_policy: config.settings.sent_copy_policy.as_str().into(),
                 keep_on_server: config.settings.keep_on_server.as_str().into(),
                 server_keeps_mail_days: account

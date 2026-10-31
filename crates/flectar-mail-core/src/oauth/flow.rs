@@ -251,7 +251,7 @@ pub async fn authorize_with_broker(
     if tok.refresh_token.is_none() {
         let message = match provider {
             Provider::Gmail => {
-                "Google did not return an offline refresh token; revoke Flectar Mail access and reconnect"
+                "Google did not return an offline refresh token; revoke emailOO access and reconnect"
             }
             Provider::Microsoft => {
                 "Microsoft did not return an offline refresh token; reconnect and grant access"

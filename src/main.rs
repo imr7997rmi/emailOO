@@ -57,6 +57,7 @@ mod motion_preferences;
 mod retained_model;
 mod rich_compose;
 mod settings_controller;
+mod shortcuts;
 mod sidebar_model;
 #[cfg(desktop)]
 mod single_instance;
@@ -4950,6 +4951,48 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
     });
 
     let app_weak = app.as_weak();
+    let state_for_download_scope = Rc::clone(&state);
+    let runtime_for_download_scope = Rc::clone(&runtime);
+    let ui_task_tx_for_download_scope = ui_task_tx.clone();
+    app.on_save_account_download_scope(move |account_id, value, limit_mb| {
+        let Some(app) = app_weak.upgrade() else {
+            return;
+        };
+        let Some(core) = state_for_download_scope.borrow().core.clone() else {
+            app.set_sync_status(UiMessage::plain("Offline downloads require local mail data."));
+            return;
+        };
+        let account_id = i64::from(account_id);
+        let value = value.to_string();
+        app.set_sync_status(UiMessage::plain("Updating offline download settings…"));
+        let updates = ui_task_tx_for_download_scope.clone();
+        runtime_for_download_scope.spawn(async move {
+            let message = match core
+                .set_account_download_scope(account_id, &value, limit_mb)
+                .await
+            {
+                Ok(()) => UiMessage::plain("Offline download settings updated."),
+                Err(error) => UiMessage::detail("Could not update offline downloads: {}", error),
+            };
+            let accounts = core.load_account_snapshot().await.ok();
+            let _ = updates
+                .send(UiTaskUpdate {
+                    message,
+                    accounts,
+                    calendar_connections: None,
+                    carddav_connections: None,
+                    calendar_error: None,
+                    account_removal: None,
+                    clear_account_form: false,
+                    finishes_account_setup: false,
+                    finishes_oauth: false,
+                    close_to_tray: None,
+                })
+                .await;
+        });
+    });
+
+    let app_weak = app.as_weak();
     let state_for_keep_on_server = Rc::clone(&state);
     let runtime_for_keep_on_server = Rc::clone(&runtime);
     let ui_task_tx_for_keep_on_server = ui_task_tx.clone();
@@ -5967,30 +6010,14 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
     });
 
     let app_weak = app.as_weak();
-    let intent_for_open = Rc::clone(&compose_intent);
-    let document_for_open = Rc::clone(&compose_document);
-    let editor_for_open = Rc::clone(&compose_editor);
+    let state_for_open = Rc::clone(&state);
+    let runtime_for_open = Rc::clone(&runtime);
     app.on_open_compose(move || {
         if let Some(app) = app_weak.upgrade() {
             if app.get_compose_open() {
                 return;
             }
-            *intent_for_open.borrow_mut() = ComposeIntent::default();
-            app.set_compose_mode("new".into());
-            app.global::<AccountMailPreferences>()
-                .invoke_composer_reset();
-            app.global::<AccountMailPreferences>()
-                .invoke_composer_account_changed(app.get_compose_account_id());
-            app.set_compose_notice(UiMessage::EMPTY);
-            app.set_compose_notice_is_error(false);
-            app.set_compose_open(true);
-            let document = document_for_open.borrow();
-            apply_rich_compose(
-                &app,
-                &document,
-                document.selection(),
-                &mut editor_for_open.borrow_mut(),
-            );
+            message_window::compose_new(&app, &state_for_open, &runtime_for_open);
         }
     });
 
@@ -6144,7 +6171,13 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
         }
 
         // emailOO: replies and forwards open the separate compose window.
-        if matches!(action.as_str(), "reply" | "reply_all" | "forward") {
+        let reply_mode = runtime_for_message_compose
+            .block_on(core.load_settings())
+            .map(|settings| settings.reply_mode)
+            .unwrap_or_else(|_| app.get_reply_mode().to_string());
+        if matches!(action.as_str(), "reply" | "reply_all" | "forward")
+            && reply_mode != "tab"
+        {
             message_window::compose_for(
                 &app,
                 &state_for_message_compose,

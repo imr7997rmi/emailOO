@@ -6,24 +6,25 @@
      Remote resources are blocked; only inline and data: content loads. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: cid:; style-src 'unsafe-inline'; font-src data:; script-src 'unsafe-inline'">
 <style>
-  html, body { margin: 0; height: 100%; background: __BG__; color: __FG__; }
+  :root { --bg: __BG__; --fg: __FG__; --muted: __MUTED__; --line: __LINE__; --link: __LINK__; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); }
   body { font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
   #editor { min-height: 100%; padding: 12px 4px 40px 4px; box-sizing: border-box; outline: none; word-wrap: break-word; }
   #editor blockquote.emailoo-quote { margin: 8px 0 0 0; padding: 0; border: 0; }
-  #editor blockquote { margin: 0 0 0 0.8ex; border-left: 2px solid __LINE__; padding-left: 1ex; }
-  #editor a { color: __LINK__; }
+  #editor blockquote { margin: 0 0 0 0.8ex; border-left: 2px solid var(--line); padding-left: 1ex; }
+  #editor a { color: var(--link); }
   #editor img { max-width: 100%; height: auto; }
-  .emailoo-header { color: __MUTED__; margin-top: 16px; }
-  #linkbar { display: none; position: sticky; top: 0; z-index: 1; padding: 6px 4px; background: __BG__; border-bottom: 1px solid __LINE__; }
-  #aimenu { display: none; position: fixed; top: 4px; z-index: 10; min-width: 220px; max-height: calc(100% - 16px); overflow-y: auto; padding: 4px; background: __BG__; border: 1px solid __LINE__; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+  .emailoo-header { color: var(--muted); margin-top: 16px; }
+  #linkbar { display: none; position: sticky; top: 0; z-index: 1; padding: 6px 4px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  #aimenu { display: none; position: fixed; top: 4px; z-index: 10; min-width: 220px; max-height: calc(100% - 16px); overflow-y: auto; padding: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
   .ai-item { padding: 6px 10px; border-radius: 6px; cursor: default; white-space: nowrap; }
-  .ai-item:hover { background: __LINE__; }
-  #aistatus { display: none; position: fixed; top: 6px; z-index: 11; align-items: center; gap: 8px; max-width: calc(100% - 24px); padding: 6px 12px; border-radius: 999px; background: __BG__; border: 1px solid __LINE__; box-shadow: 0 4px 16px rgba(0,0,0,0.2); color: __MUTED__; font-size: 12px; }
+  .ai-item:hover { background: var(--line); }
+  #aistatus { display: none; position: fixed; top: 6px; z-index: 11; align-items: center; gap: 8px; max-width: calc(100% - 24px); padding: 6px 12px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); box-shadow: 0 4px 16px rgba(0,0,0,0.2); color: var(--muted); font-size: 12px; }
   #aistatus.error { color: #e5534b; border-color: #e5534b; border-radius: 10px; }
-  #aistatus .spin { width: 12px; height: 12px; flex: none; border: 2px solid __LINE__; border-top-color: __LINK__; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  #aistatus .spin { width: 12px; height: 12px; flex: none; border: 2px solid var(--line); border-top-color: var(--link); border-radius: 50%; animation: spin 0.8s linear infinite; }
   #aistatus.error .spin { display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  #linkinput { flex: 1; font: inherit; color: __FG__; background: transparent; border: 1px solid __LINE__; border-radius: 6px; padding: 4px 8px; outline: none; }
+  #linkinput { flex: 1; font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; outline: none; }
 </style>
 <script>__DOMPURIFY__</script>
 <script>__SQUIRE__</script>
@@ -183,6 +184,35 @@
     aiBusy: function (text) { showStatus(text, false); },
     requestSend: function () { post("send", { html: editor.getHTML(), text: root.innerText }); },
     aiError: function (text) { showStatus(text, true); },
+    setTheme: function (bg, fg, muted, line, link) {
+      var style = document.documentElement.style;
+      style.setProperty("--bg", bg);
+      style.setProperty("--fg", fg);
+      style.setProperty("--muted", muted);
+      style.setProperty("--line", line);
+      style.setProperty("--link", link);
+    },
+    insertHtml: function (html) {
+      if (!html) { return; }
+      editor.focus();
+      editor.insertHTML(html);
+      editor.focus();
+    },
+    insertSignature: function (html) {
+      var existing = root.querySelector(".emailoo-signature");
+      if (existing) { existing.parentNode.removeChild(existing); }
+      if (!html) { editor.focus(); return; }
+      var block = document.createElement("div");
+      block.className = "emailoo-signature";
+      block.innerHTML = html;
+      var header = root.querySelector(".emailoo-header");
+      if (header && header.parentNode === root) {
+        root.insertBefore(block, header);
+      } else {
+        root.appendChild(block);
+      }
+      editor.focus();
+    },
     aiApply: function (text) {
       clearTimeout(aiStatusTimer);
       aiStatus.style.display = "none";

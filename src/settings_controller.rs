@@ -137,6 +137,110 @@ pub(super) fn register_settings_preference_callbacks(
     });
 
     let app_weak = app.as_weak();
+    let state_for_reply_mode = Rc::clone(state);
+    let runtime_for_reply_mode = Rc::clone(runtime);
+    app.on_save_reply_mode(move |mode| {
+        let Some(app) = app_weak.upgrade() else {
+            return;
+        };
+        let mode = mode.to_string();
+        let Some(core) = state_for_reply_mode.borrow().core.clone() else {
+            app.set_reply_mode(mode.into());
+            app.set_sync_status(UiMessage::plain("Reply preference updated for this session."));
+            return;
+        };
+        let Ok(mut settings) = runtime_for_reply_mode.block_on(core.load_settings()) else {
+            app.set_sync_status(UiMessage::plain("Could not read the current settings."));
+            return;
+        };
+        settings.reply_mode = mode.clone();
+        match runtime_for_reply_mode.block_on(core.save_settings(settings)) {
+            Ok(()) => {
+                app.set_reply_mode(mode.into());
+                app.set_sync_status(UiMessage::plain("Reply preference saved."));
+            }
+            Err(error) => app.set_sync_status(UiMessage::detail(
+                "Could not save reply preference: {}",
+                error,
+            )),
+        }
+    });
+
+    let app_weak = app.as_weak();
+    let state_for_nextcloud = Rc::clone(state);
+    let runtime_for_nextcloud = Rc::clone(runtime);
+    app.on_save_nextcloud_settings(move |url, username, password, local, remote| {
+        let Some(app) = app_weak.upgrade() else {
+            return;
+        };
+        let Some(core) = state_for_nextcloud.borrow().core.clone() else {
+            app.set_sync_status(UiMessage::plain("Nextcloud requires local mail data."));
+            return;
+        };
+        let (url, username, password, local, remote) = (
+            url.to_string(),
+            username.to_string(),
+            password.to_string(),
+            local.to_string(),
+            remote.to_string(),
+        );
+        match runtime_for_nextcloud.block_on(core.set_nextcloud_settings(
+            &url,
+            &username,
+            &password,
+            &local,
+            &remote,
+        )) {
+            Ok(()) => {
+                app.set_nextcloud_url(url.into());
+                app.set_nextcloud_username(username.into());
+                app.set_nextcloud_password(slint::SharedString::new());
+                app.set_nextcloud_local_path(local.into());
+                app.set_nextcloud_remote_path(remote.into());
+                app.set_sync_status(UiMessage::plain("Nextcloud settings saved."));
+            }
+            Err(error) => app.set_sync_status(UiMessage::detail(
+                "Could not save Nextcloud settings: {}",
+                error,
+            )),
+        }
+    });
+
+    let app_weak = app.as_weak();
+    let state_for_shortcuts = Rc::clone(state);
+    let runtime_for_shortcuts = Rc::clone(runtime);
+    app.on_save_shortcuts(move |text| {
+        let Some(app) = app_weak.upgrade() else {
+            return;
+        };
+        let Some(core) = state_for_shortcuts.borrow().core.clone() else {
+            app.set_sync_status(UiMessage::plain(
+                "Shortcut changes are active for this session.",
+            ));
+            let overrides = crate::shortcuts::parse(text.as_str());
+            crate::shortcuts::apply(&app, &overrides);
+            return;
+        };
+        let overrides = crate::shortcuts::parse(text.as_str());
+        let Ok(mut settings) = runtime_for_shortcuts.block_on(core.load_settings()) else {
+            app.set_sync_status(UiMessage::plain("Could not read the current settings."));
+            return;
+        };
+        settings.shortcuts = overrides.clone();
+        match runtime_for_shortcuts.block_on(core.save_settings(settings)) {
+            Ok(()) => {
+                crate::shortcuts::apply(&app, &overrides);
+                app.set_shortcuts_text(crate::shortcuts::describe(&overrides).into());
+                app.set_sync_status(UiMessage::plain("Shortcuts saved."));
+            }
+            Err(error) => app.set_sync_status(UiMessage::detail(
+                "Could not save shortcuts: {}",
+                error,
+            )),
+        }
+    });
+
+    let app_weak = app.as_weak();
     let state_for_clear_contacts = Rc::clone(state);
     let runtime_for_clear_contacts = Rc::clone(runtime);
     app.on_clear_contact_suggestions(move || {
@@ -177,7 +281,10 @@ pub(super) fn register_settings_preference_callbacks(
             return;
         };
         match runtime_for_theme.block_on(core.set_theme(&theme)) {
-            Ok(()) => app.set_sync_status(UiMessage::plain("Theme preference saved.")),
+            Ok(()) => {
+                crate::message_window::refresh_theme(&app);
+                app.set_sync_status(UiMessage::plain("Theme preference saved."));
+            }
             Err(error) => app.set_sync_status(UiMessage::detail("Could not save theme: {}", error)),
         }
     });
@@ -194,7 +301,10 @@ pub(super) fn register_settings_preference_callbacks(
             return;
         };
         match runtime_for_theme_preset.block_on(core.set_theme_preset(preset.as_str())) {
-            Ok(()) => app.set_sync_status(UiMessage::plain("Theme palette saved.")),
+            Ok(()) => {
+                crate::message_window::refresh_theme(&app);
+                app.set_sync_status(UiMessage::plain("Theme palette saved."));
+            }
             Err(error) => {
                 app.set_sync_status(UiMessage::detail("Could not save theme palette: {}", error))
             }
@@ -267,6 +377,7 @@ pub(super) fn register_settings_preference_callbacks(
             };
             match runtime_for_custom_theme.block_on(core.set_custom_theme(custom_theme)) {
                 Ok(()) => {
+                    crate::message_window::refresh_theme(&app);
                     app.set_sync_status(UiMessage::plain("Custom theme saved."));
                     true
                 }

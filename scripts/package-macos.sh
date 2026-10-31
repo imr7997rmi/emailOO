@@ -9,11 +9,15 @@ architecture="${3:-$(uname -m)}"
 case "$architecture" in
   arm64|aarch64)
     asset_architecture="arm64"
-    pdfium_target="mac-arm64"
+    pdfium_targets=("mac-arm64")
     ;;
   x64|x86_64|amd64)
     asset_architecture="x64"
-    pdfium_target="mac-x64"
+    pdfium_targets=("mac-x64")
+    ;;
+  universal)
+    asset_architecture="universal"
+    pdfium_targets=("mac-arm64" "mac-x64")
     ;;
   *)
     printf 'Unsupported macOS architecture: %s\n' "$architecture" >&2
@@ -27,6 +31,13 @@ if [[ ! -x "$binary_path" ]]; then
   printf 'Missing release binary: %s\n' "$binary_path" >&2
   exit 1
 fi
+if [[ "$asset_architecture" == universal ]]; then
+  binary_architectures="$(lipo -archs "$binary_path" 2>/dev/null || true)"
+  if [[ "$binary_architectures" != *arm64* || "$binary_architectures" != *x86_64* ]]; then
+    printf 'Universal build needs an arm64 and x86_64 binary, got: %s\n' "${binary_architectures:-unknown}" >&2
+    exit 1
+  fi
+fi
 
 rm -rf "$app_dir"
 mkdir -p \
@@ -39,14 +50,31 @@ mkdir -p \
   "$app_dir/Contents/Resources/Licenses/PDFium"
 cp "$binary_path" "$app_dir/Contents/MacOS/flectar-mail"
 # Registered with Login Items through SMAppService for "Start automatically".
-cp "$project_dir/platform/macos/com.flectar.mail.login.plist" \
-  "$app_dir/Contents/Library/LaunchAgents/com.flectar.mail.login.plist"
-plutil -lint "$app_dir/Contents/Library/LaunchAgents/com.flectar.mail.login.plist"
+cp "$project_dir/platform/macos/com.nivvoo.emailoo.login.plist" \
+  "$app_dir/Contents/Library/LaunchAgents/com.nivvoo.emailoo.login.plist"
+plutil -lint "$app_dir/Contents/Library/LaunchAgents/com.nivvoo.emailoo.login.plist"
 
-python3 "$project_dir/scripts/stage-pdfium.py" \
-  "$pdfium_target" "$app_dir/Contents/Frameworks" \
-  --licenses-destination "$app_dir/Contents/Resources/Licenses/PDFium"
-chmod 0755 "$app_dir/Contents/Frameworks/libpdfium.dylib"
+pdfium_frameworks="$app_dir/Contents/Frameworks"
+pdfium_licenses="$app_dir/Contents/Resources/Licenses/PDFium"
+if [[ ${#pdfium_targets[@]} -eq 1 ]]; then
+  python3 "$project_dir/scripts/stage-pdfium.py" \
+    "${pdfium_targets[0]}" "$pdfium_frameworks" \
+    --licenses-destination "$pdfium_licenses"
+else
+  pdfium_staging="$output_dir/pdfium-staging"
+  rm -rf "$pdfium_staging"
+  for pdfium_target in "${pdfium_targets[@]}"; do
+    python3 "$project_dir/scripts/stage-pdfium.py" \
+      "$pdfium_target" "$pdfium_staging/$pdfium_target" \
+      --licenses-destination "$pdfium_licenses"
+  done
+  lipo -create \
+    "$pdfium_staging/mac-arm64/libpdfium.dylib" \
+    "$pdfium_staging/mac-x64/libpdfium.dylib" \
+    -output "$pdfium_frameworks/libpdfium.dylib"
+  rm -rf "$pdfium_staging"
+fi
+chmod 0755 "$pdfium_frameworks/libpdfium.dylib"
 
 # macOS icons keep a transparent margin (824 px body on a 1024 px canvas,
 # as in Apple's template); the full-bleed artwork looks larger in the Dock.

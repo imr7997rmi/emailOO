@@ -373,6 +373,38 @@ impl KeepOnServer {
     }
 }
 
+/// How much of each message an account keeps on this device (#12).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum DownloadScope {
+    /// Headers only; bodies download when the message is opened.
+    Headers,
+    /// Headers and body; attachments download on demand.
+    #[default]
+    Body,
+    /// Everything, including attachments up to the size limit.
+    Everything,
+}
+
+impl DownloadScope {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Headers => "headers",
+            Self::Body => "body",
+            Self::Everything => "everything",
+        }
+    }
+
+    pub fn from_storage(value: &str) -> Option<Self> {
+        match value {
+            "headers" => Some(Self::Headers),
+            "body" => Some(Self::Body),
+            "everything" => Some(Self::Everything),
+            _ => None,
+        }
+    }
+}
+
 /// Typed contents of `accounts.settings_json`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -394,6 +426,12 @@ pub struct AccountSettings {
     /// POP3 accounts only.
     #[serde(default)]
     pub keep_on_server: KeepOnServer,
+    /// What to keep on this device for offline use (#12).
+    #[serde(default)]
+    pub download_scope: DownloadScope,
+    /// Skip attachments larger than this when `download_scope` is Everything.
+    #[serde(default = "default_download_attachment_limit_mb")]
+    pub download_attachment_limit_mb: i64,
 }
 
 impl AccountSettings {
@@ -407,8 +445,18 @@ impl AccountSettings {
             default_sender_email: None,
             sent_copy_policy: SentCopyPolicy::Auto,
             keep_on_server: KeepOnServer::Always,
+            download_scope: DownloadScope::Body,
+            download_attachment_limit_mb: default_download_attachment_limit_mb(),
         }
     }
+}
+
+const fn default_download_attachment_limit_mb() -> i64 {
+    10
+}
+
+fn default_reply_mode() -> String {
+    "tab".to_owned()
 }
 
 const fn default_mail_history() -> MailHistory {
@@ -1668,6 +1716,20 @@ pub struct Settings {
     /// UI language: "system" follows the OS locale, otherwise a code like "en".
     #[serde(default = "default_language")]
     pub language: String,
+    /// Where reply/reply-all/forward opens: "window" (separate compose
+    /// window) or "tab" (the main window's composer).
+    #[serde(default = "default_reply_mode")]
+    pub reply_mode: String,
+    /// Nextcloud server/account for public share links (#4). The app password
+    /// lives in the keychain, not here.
+    #[serde(default)]
+    pub nextcloud_url: String,
+    #[serde(default)]
+    pub nextcloud_username: String,
+    #[serde(default)]
+    pub nextcloud_local_path: String,
+    #[serde(default)]
+    pub nextcloud_remote_path: String,
     #[serde(default)]
     pub time_format: TimeFormat,
     /// First day shown in calendar week and month views: "sunday" | "monday".
@@ -1821,6 +1883,10 @@ pub struct Settings {
     /// Show which account each mail-list row belongs to with a color marker.
     #[serde(default)]
     pub show_account_badges: bool,
+    /// emailOO: keyboard shortcut overrides, keyed by action id. Values use
+    /// `+`-separated Slint key parts (`Control+Shift+E`); absent = default.
+    #[serde(default)]
+    pub shortcuts: std::collections::HashMap<String, String>,
     /// Per-account marker color (hex), keyed by stringified account id.
     /// Missing = the UI derives a stable hue from the address.
     #[serde(default)]
@@ -1960,6 +2026,11 @@ impl Default for Settings {
             window_frame: default_window_frame(),
             monochrome_sidebar_icons: false,
             language: "system".into(),
+            reply_mode: default_reply_mode(),
+            nextcloud_url: String::new(),
+            nextcloud_username: String::new(),
+            nextcloud_local_path: String::new(),
+            nextcloud_remote_path: String::new(),
             time_format: TimeFormat::default(),
             calendar_week_start: default_calendar_week_start(),
             undo_send_seconds: 10,
@@ -2007,6 +2078,7 @@ impl Default for Settings {
             signature_defaults: std::collections::HashMap::new(),
             account_themes: std::collections::HashMap::new(),
             show_account_badges: false,
+            shortcuts: std::collections::HashMap::new(),
             account_colors: std::collections::HashMap::new(),
             account_short_names: std::collections::HashMap::new(),
             mail_profiles: Vec::new(),

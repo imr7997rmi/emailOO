@@ -277,6 +277,17 @@ export component ComposerFromRow inherits Rectangle {
 
 export component ComposerRecipients inherits Rectangle {
     in property <bool> open: false;
+    in property <bool> boxed: false;
+    in property <bool> external-labels: false;
+    in property <bool> show-all: false;
+    in property <length> gap: 0px;
+    in property <color> box-background-color: transparent;
+    in property <color> box-border-color: #cccdca;
+    out property <bool> shows-cc: root.show-cc;
+    out property <bool> shows-bcc: root.show-bcc;
+    out property <length> panel-height: 40px
+        + (root.show-cc ? 40px + root.gap : 0px)
+        + (root.show-bcc ? 40px + root.gap : 0px);
     in-out property <string> to;
     in-out property <string> cc;
     in-out property <string> bcc;
@@ -294,8 +305,8 @@ export component ComposerRecipients inherits Rectangle {
     in-out property <int> highlighted-contact: 0;
     callback search-contacts(string);
     callback contact-selected(int);
-    private property <bool> show-cc: root.cc != "";
-    private property <bool> show-bcc: root.bcc != "";
+    private property <bool> show-cc: root.cc != "" || root.show-all;
+    private property <bool> show-bcc: root.bcc != "" || root.show-all;
     private property <bool> suggestions-dismissed: false;
     // Suggestion rows hold a name and an address that grow with the platform font.
     private property <length> suggestion-pitch: 13px + max(18px, suggestion-name-probe.preferred-height)
@@ -325,16 +336,20 @@ export component ComposerRecipients inherits Rectangle {
         }
     }
 
-            height: 40px + (root.show-cc ? 40px : 0px) + (root.show-bcc ? 40px : 0px);
+            height: root.panel-height;
             background: root.background-color;
 
             to-row := RecipientRow {
+                boxed: root.boxed;
+                show-label: !root.external-labels;
+                box-background-color: root.box-background-color;
+                box-border-color: root.box-border-color;
                 x: 0px;
                 y: 0px;
                 width: parent.width;
                 label: @tr("To");
                 placeholder-text: @tr("name@example.com · separate with commas");
-                right-padding: parent.width - recipient-modes.x + 8px;
+                right-padding: root.show-all ? 12px : parent.width - recipient-modes.x + 8px;
                 text <=> root.to;
                 background-color: root.background-color;
                 label-color: root.muted-color;
@@ -359,6 +374,7 @@ export component ComposerRecipients inherits Rectangle {
             }
 
             recipient-modes := HorizontalBox {
+                visible: !root.show-all;
                 x: parent.width - self.width - 10px;
                 y: 7px;
                 width: cc-mode.width + bcc-mode.width + 2px;
@@ -366,7 +382,7 @@ export component ComposerRecipients inherits Rectangle {
                 spacing: 2px;
 
                 cc-mode := ModeButton {
-                    width: max(36px, self.label-width + 12px);
+                    width: 52px;
                     text: @tr("Cc");
                     selected: root.show-cc;
                     text-color: root.muted-color;
@@ -376,7 +392,7 @@ export component ComposerRecipients inherits Rectangle {
                     clicked => { root.show-cc = !root.show-cc; }
                 }
                 bcc-mode := ModeButton {
-                    width: max(38px, self.label-width + 12px);
+                    width: 52px;
                     text: @tr("Bcc");
                     selected: root.show-bcc;
                     text-color: root.muted-color;
@@ -388,8 +404,12 @@ export component ComposerRecipients inherits Rectangle {
             }
 
             if root.show-cc : RecipientRow {
+                boxed: root.boxed;
+                show-label: !root.external-labels;
+                box-background-color: root.box-background-color;
+                box-border-color: root.box-border-color;
                 x: 0px;
-                y: 40px;
+                y: 40px + root.gap;
                 width: parent.width;
                 label: @tr("Cc");
                 placeholder-text: @tr("Carbon copy");
@@ -402,8 +422,12 @@ export component ComposerRecipients inherits Rectangle {
             }
 
             if root.show-bcc : RecipientRow {
+                boxed: root.boxed;
+                show-label: !root.external-labels;
+                box-background-color: root.box-background-color;
+                box-border-color: root.box-border-color;
                 x: 0px;
-                y: 40px + (root.show-cc ? 40px : 0px);
+                y: 40px + root.gap + (root.show-cc ? 40px + root.gap : 0px);
                 width: parent.width;
                 label: @tr("Bcc");
                 placeholder-text: @tr("Blind carbon copy");

@@ -5,7 +5,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.flectar.mail.login</string>
+  <string>com.nivvoo.emailoo.login</string>
   <key>BundleProgram</key>
   <string>Contents/MacOS/flectar-mail</string>
   <key>ProgramArguments</key>

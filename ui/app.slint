@@ -8,6 +8,7 @@ export { RendererSettings } from "renderer-settings.slint";
 export { AiUi } from "ai.slint";
 import { AiResultPanel } from "ai.slint";
 export { CloudSync } from "icloud-sync.slint";
+export { Shortcuts } from "shortcuts.slint";
 export { MessageWindow, MessageWindowApi, WindowEmailTile } from "message-window.slint";
 export { ComposeWindow } from "compose-window.slint";
 export { ReaderRequests } from "reader-requests.slint";
@@ -228,6 +229,20 @@ export global I18n {
         if (key == "Message-opening preference updated for this session.") { return @tr("Message-opening preference updated for this session."); }
         if (key == "Message-opening preference saved.") { return @tr("Message-opening preference saved."); }
         if (key == "Could not save message-opening preference: {}") { return @tr("Could not save message-opening preference: {}", argument); }
+        if (key == "Offline downloads require local mail data.") { return @tr("Offline downloads require local mail data."); }
+        if (key == "Updating offline download settings…") { return @tr("Updating offline download settings…"); }
+        if (key == "Offline download settings updated.") { return @tr("Offline download settings updated."); }
+        if (key == "Could not update offline downloads: {}") { return @tr("Could not update offline downloads: {}", argument); }
+        if (key == "Shortcut changes are active for this session.") { return @tr("Shortcut changes are active for this session."); }
+        if (key == "Could not read the current settings.") { return @tr("Could not read the current settings."); }
+        if (key == "Reply preference updated for this session.") { return @tr("Reply preference updated for this session."); }
+        if (key == "Reply preference saved.") { return @tr("Reply preference saved."); }
+        if (key == "Could not save reply preference: {}") { return @tr("Could not save reply preference: {}", argument); }
+        if (key == "Shortcuts saved.") { return @tr("Shortcuts saved."); }
+        if (key == "Could not save shortcuts: {}") { return @tr("Could not save shortcuts: {}", argument); }
+        if (key == "Nextcloud requires local mail data.") { return @tr("Nextcloud requires local mail data."); }
+        if (key == "Nextcloud settings saved.") { return @tr("Nextcloud settings saved."); }
+        if (key == "Could not save Nextcloud settings: {}") { return @tr("Could not save Nextcloud settings: {}", argument); }
         if (key == "Contact suggestion preferences are active for this session.") { return @tr("Contact suggestion preferences are active for this session."); }
         if (key == "Contact suggestion preferences saved.") { return @tr("Contact suggestion preferences saved."); }
         if (key == "Could not save contact suggestion preferences: {}") { return @tr("Could not save contact suggestion preferences: {}", argument); }
@@ -299,13 +314,13 @@ export global I18n {
         if (key == "System tray behavior is unavailable in this package.") { return @tr("System tray behavior is unavailable in this package."); }
         if (key == "Close-to-tray is active for this session.") { return @tr("Close-to-tray is active for this session."); }
         if (key == "Saving close behavior…") { return @tr("Saving close behavior…"); }
-        if (key == "Closing the window will now keep Flectar Mail in the tray.") { return @tr("Closing the window will now keep Flectar Mail in the tray."); }
-        if (key == "Closing the window will now quit Flectar Mail.") { return @tr("Closing the window will now quit Flectar Mail."); }
+        if (key == "Closing the window will now keep emailOO in the tray.") { return @tr("Closing the window will now keep emailOO in the tray."); }
+        if (key == "Closing the window will now quit emailOO.") { return @tr("Closing the window will now quit emailOO."); }
         if (key == "Could not save close behavior: {}") { return @tr("Could not save close behavior: {}", argument); }
-        if (key == "Flectar Mail will start when you sign in.") { return @tr("Flectar Mail will start when you sign in."); }
-        if (key == "Flectar Mail will no longer start when you sign in.") { return @tr("Flectar Mail will no longer start when you sign in."); }
+        if (key == "emailOO will start when you sign in.") { return @tr("emailOO will start when you sign in."); }
+        if (key == "emailOO will no longer start when you sign in.") { return @tr("emailOO will no longer start when you sign in."); }
         if (key == "Could not change startup behavior: {}") { return @tr("Could not change startup behavior: {}", argument); }
-        if (key == "Allow Flectar Mail under Login Items in System Settings to finish.") { return @tr("Allow Flectar Mail under Login Items in System Settings to finish."); }
+        if (key == "Allow emailOO under Login Items in System Settings to finish.") { return @tr("Allow emailOO under Login Items in System Settings to finish."); }
         return "";
     }
 
@@ -351,7 +366,7 @@ export global I18n {
 
     ui-message-data(key, argument, second-argument, third-argument) => {
         if (key == "Connect an account before creating a backup.") { return @tr("Connect an account before creating a backup."); }
-        if (key == "Export Flectar Mail account backup") { return @tr("Export Flectar Mail account backup"); }
+        if (key == "Export emailOO account backup") { return @tr("Export emailOO account backup"); }
         if (key == "Flectar Mail backup") { return @tr("Flectar Mail backup"); }
         if (key == "Import accounts") { return @tr("Import accounts"); }
         if (key == "Account settings") { return @tr("Account settings"); }
@@ -361,7 +376,7 @@ export global I18n {
         if (key == "Could not export backup: {}") { return @tr("Could not export backup: {}", argument); }
         if (key == "Local data storage is unavailable. Retry startup.") { return @tr("Local data storage is unavailable. Retry startup."); }
         if (key == "Creating verified database snapshot…") { return @tr("Creating verified database snapshot…"); }
-        if (key == "All local Flectar Mail data was deleted.") { return @tr("All local Flectar Mail data was deleted."); }
+        if (key == "All local emailOO data was deleted.") { return @tr("All local emailOO data was deleted."); }
         if (key == "Could not delete all local data: {}") { return @tr("Could not delete all local data: {}", argument); }
         if (key == "Deleting local accounts and cached data…") { return @tr("Deleting local accounts and cached data…"); }
         return "";
@@ -401,8 +416,8 @@ export global I18n {
         if (key == "Calendar shown and syncing.") { return @tr("Calendar shown and syncing."); }
         if (key == "Calendar hidden and sync paused.") { return @tr("Calendar hidden and sync paused."); }
         if (key == "Calendar update failed: {}") { return @tr("Calendar update failed: {}", argument); }
-        if (key == "Only events created in Flectar Mail can be edited.") { return @tr("Only events created in Flectar Mail can be edited."); }
-        if (key == "Only events created in Flectar Mail can be deleted.") { return @tr("Only events created in Flectar Mail can be deleted."); }
+        if (key == "Only events created in emailOO can be edited.") { return @tr("Only events created in emailOO can be edited."); }
+        if (key == "Only events created in emailOO can be deleted.") { return @tr("Only events created in emailOO can be deleted."); }
         if (key == "Calendar storage is unavailable.") { return @tr("Calendar storage is unavailable."); }
         if (key == "Could not delete event: {}") { return @tr("Could not delete event: {}", argument); }
         if (key == "Event deleted, but refresh failed: {}") { return @tr("Event deleted, but refresh failed: {}", argument); }
@@ -575,7 +590,7 @@ export global I18n {
 }
 
 export component AppWindow inherits Window {
-    title: @tr("Flectar Mail");
+    title: @tr("emailOO");
     // Window managers show this at 256 px at most, and the decoded pixels stay
     // resident for the life of the process, including while in the tray.
     icon: @image-url("../resources/app-icon/emailoo-window.png");
@@ -647,6 +662,10 @@ export component AppWindow inherits Window {
     callback save_sync_interval(int);
     callback save_mark_read_on_open(bool);
     callback save_contact_discovery_settings(bool, bool, bool, bool);
+    callback save_shortcuts(string);
+    callback save_reply_mode(string);
+    callback save_account_download_scope(int, string, int);
+    callback save_nextcloud_settings(string, string, string, string, string);
     callback clear_contact_suggestions() -> bool;
     callback set_close_to_tray(bool);
     callback set_launch_at_login(bool);
@@ -969,6 +988,13 @@ export component AppWindow inherits Window {
     in-out property <string> time_format: "automatic";
     in property <string> time_format_sample: "13:30";
     in-out property <bool> monochrome_sidebar_icons: false;
+    in-out property <string> shortcuts_text: "";
+    in-out property <string> reply_mode: "window";
+    in-out property <string> nextcloud_url: "";
+    in-out property <string> nextcloud_username: "";
+    in-out property <string> nextcloud_password: "";
+    in-out property <string> nextcloud_local_path: "";
+    in-out property <string> nextcloud_remote_path: "/";
     in-out property <bool> notifications_enabled: true;
     in-out property <bool> notification_sound_enabled: true;
     in-out property <string> notification_scope: "important";
@@ -1356,7 +1382,7 @@ export component AppWindow inherits Window {
             y: (parent.height - self.height) / 2;
             spacing: 12px;
             Text {
-                text: "Flectar Mail";
+                text: "emailOO";
                 color: root.title-color;
                 font-size: TypeScale.heading;
                 font-weight: 600;
@@ -1879,6 +1905,13 @@ export component AppWindow inherits Window {
             time_format <=> root.time_format;
             time_format_sample: root.time_format_sample;
             monochrome_sidebar_icons <=> root.monochrome_sidebar_icons;
+            shortcuts_text <=> root.shortcuts_text;
+            reply_mode <=> root.reply_mode;
+            nextcloud_url <=> root.nextcloud_url;
+            nextcloud_username <=> root.nextcloud_username;
+            nextcloud_password <=> root.nextcloud_password;
+            nextcloud_local_path <=> root.nextcloud_local_path;
+            nextcloud_remote_path <=> root.nextcloud_remote_path;
             notifications_enabled <=> root.notifications_enabled;
             notification_sound_enabled <=> root.notification_sound_enabled;
             notification_scope <=> root.notification_scope;
@@ -1983,6 +2016,10 @@ export component AppWindow inherits Window {
             save_contact_discovery_settings(outgoing, incoming, all-accounts, suggest) => {
                 root.save_contact_discovery_settings(outgoing, incoming, all-accounts, suggest);
             }
+            save_shortcuts(text) => { root.save_shortcuts(text); }
+            save_reply_mode(mode) => { root.save_reply_mode(mode); }
+            save_account_download_scope(account-id, scope, limit-mb) => { root.save_account_download_scope(account-id, scope, limit-mb); }
+            save_nextcloud_settings(url, username, password, local, remote) => { root.save_nextcloud_settings(url, username, password, local, remote); }
             clear_contact_suggestions => { return root.clear_contact_suggestions(); }
             set_close_to_tray(enabled) => { root.set_close_to_tray(enabled); }
             set_launch_at_login(enabled) => { root.set_launch_at_login(enabled); }
@@ -2327,7 +2364,7 @@ export component AppWindow inherits Window {
                 padding: parent.cramped ? 12px : 24px;
                 spacing: parent.cramped ? 8px : 12px;
                 Text {
-                    text: @tr("Flectar Mail could not open local storage");
+                    text: @tr("emailOO could not open local storage");
                     color: root.title-color;
                     font-size: TypeScale.heading;
                     font-weight: 700;

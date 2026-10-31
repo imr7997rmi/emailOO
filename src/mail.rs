@@ -910,6 +910,40 @@ impl CoreMailSource {
             .map_err(|error| error.to_string())
     }
 
+    pub async fn set_nextcloud_settings(
+        &self,
+        url: &str,
+        username: &str,
+        password: &str,
+        local_path: &str,
+        remote_path: &str,
+    ) -> Result<(), String> {
+        self.core
+            .set_nextcloud_settings(
+                url.to_owned(),
+                username.to_owned(),
+                (!password.is_empty()).then(|| password.to_owned()),
+                local_path.to_owned(),
+                remote_path.to_owned(),
+            )
+            .await
+            .map_err(|error| error.to_string())
+    }
+
+    pub async fn set_account_download_scope(
+        &self,
+        account_id: i64,
+        value: &str,
+        attachment_limit_mb: i32,
+    ) -> Result<(), String> {
+        let scope = flectar_mail_core::models::DownloadScope::from_storage(value)
+            .ok_or_else(|| format!("unsupported download scope: {value}"))?;
+        self.core
+            .set_account_download_scope(account_id, scope, i64::from(attachment_limit_mb))
+            .await
+            .map_err(|error| error.to_string())
+    }
+
     pub async fn set_account_keep_on_server(
         &self,
         account_id: i64,
@@ -2595,7 +2629,7 @@ pub fn fixtures() -> Vec<EmailFixture> {
         // Renderer tests need an HTML document; screenshots render the shared
         // demo-email.html instead. Build test HTML from the same rows.
         email.html = markdown_to_html(&format!(
-            "# {}\n\n{}\n\n[Open message](https://{}) · [Flectar Mail](https://flectar.com)",
+            "# {}\n\n{}\n\n[Open message](https://{}) · [emailOO](https://github.com/imr7997rmi/emailOO)",
             email.subject,
             email.preview,
             domain_from_address(&email.address).unwrap_or_default()

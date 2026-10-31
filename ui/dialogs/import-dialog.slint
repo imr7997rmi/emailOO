@@ -75,20 +75,20 @@ global ImportText {
     public pure function finding(code: string, detail: string, count: int) -> string {
         if code == "missing-email" { return @tr("No valid email address was found."); }
         if code == "missing-incoming-server" { return @tr("No incoming mail server is configured."); }
-        if code == "incoming-protocol-unsupported" { return @tr("The incoming server {} uses a protocol Flectar Mail does not support.", detail); }
+        if code == "incoming-protocol-unsupported" { return @tr("The incoming server {} uses a protocol emailOO does not support.", detail); }
         if code == "missing-outgoing-server" { return @tr("No outgoing mail server is configured."); }
-        if code == "outgoing-protocol-unsupported" { return @tr("The outgoing server {} uses a protocol Flectar Mail does not support.", detail); }
+        if code == "outgoing-protocol-unsupported" { return @tr("The outgoing server {} uses a protocol emailOO does not support.", detail); }
         if code == "unencrypted-incoming" { return @tr("The incoming server {} is not encrypted, so your password and mail cross the network unprotected.", detail); }
         if code == "unencrypted-outgoing" { return @tr("The outgoing server {} is not encrypted, so your password and mail cross the network unprotected.", detail); }
-        if code == "unprotected-password" { return @tr("{} keeps your password off its unencrypted connection, but Flectar Mail would send it in the clear. Turn on SSL/TLS or STARTTLS for this server first.", detail); }
+        if code == "unprotected-password" { return @tr("{} keeps your password off its unencrypted connection, but emailOO would send it in the clear. Turn on SSL/TLS or STARTTLS for this server first.", detail); }
         // Methods with a product name share one sentence; the others are worded.
-        if code == "incoming-sign-in-unsupported" && detail == "none" { return @tr("The incoming server connects without signing in, which Flectar Mail does not support."); }
-        if code == "incoming-sign-in-unsupported" && detail == "client certificate" { return @tr("The incoming server signs in with a client certificate, which Flectar Mail does not support."); }
-        if code == "incoming-sign-in-unsupported" { return @tr("The incoming server signs in with {}, which Flectar Mail does not support.", detail); }
-        if code == "outgoing-sign-in-unsupported" && detail == "none" { return @tr("The outgoing server sends mail without signing in, which Flectar Mail does not support."); }
-        if code == "outgoing-sign-in-unsupported" && detail == "client certificate" { return @tr("The outgoing server signs in with a client certificate, which Flectar Mail does not support."); }
-        if code == "outgoing-sign-in-unsupported" { return @tr("The outgoing server signs in with {}, which Flectar Mail does not support.", detail); }
-        if code == "separate-outgoing-login" { return @tr("The outgoing server signs in as {}. Flectar Mail uses one sign-in for both servers.", detail); }
+        if code == "incoming-sign-in-unsupported" && detail == "none" { return @tr("The incoming server connects without signing in, which emailOO does not support."); }
+        if code == "incoming-sign-in-unsupported" && detail == "client certificate" { return @tr("The incoming server signs in with a client certificate, which emailOO does not support."); }
+        if code == "incoming-sign-in-unsupported" { return @tr("The incoming server signs in with {}, which emailOO does not support.", detail); }
+        if code == "outgoing-sign-in-unsupported" && detail == "none" { return @tr("The outgoing server sends mail without signing in, which emailOO does not support."); }
+        if code == "outgoing-sign-in-unsupported" && detail == "client certificate" { return @tr("The outgoing server signs in with a client certificate, which emailOO does not support."); }
+        if code == "outgoing-sign-in-unsupported" { return @tr("The outgoing server signs in with {}, which emailOO does not support.", detail); }
+        if code == "separate-outgoing-login" { return @tr("The outgoing server signs in as {}. emailOO uses one sign-in for both servers.", detail); }
         if code == "missing-username" { return @tr("The incoming server has no user name."); }
         if code == "invalid-server" { return @tr("The server settings for {} are not valid.", detail); }
         if code == "duplicate-in-source" { return @tr("This address appears earlier in the file."); }
@@ -96,7 +96,7 @@ global ImportText {
         if code == "microsoft-sign-in-replaces-password" { return @tr("You will sign in with Microsoft instead of a password."); }
         if code == "google-sign-in-replaces-password" { return @tr("You will sign in with Google instead of a password."); }
         if code == "oauth-login-unsupported" { return @tr("The account signs in as {}, which is not an email address. Add it with its own address instead.", detail); }
-        if code == "oauth-replaced-by-password" { return @tr("Flectar Mail cannot use browser sign-in for {}. Sign in with an app password.", detail); }
+        if code == "oauth-replaced-by-password" { return @tr("emailOO cannot use browser sign-in for {}. Sign in with an app password.", detail); }
         if code == "outgoing-server-replaced" { return @tr("The provider's standard outgoing server replaces {}.", detail); }
         if code == "provider-sync-replaces-pop3" { return @tr("This account syncs with {} instead of downloading mail with POP3.", detail); }
         if code == "removes-server-mail" && detail == "untilDownloaded" { return @tr("Mail is removed from the server once it's on this device."); }
@@ -454,7 +454,7 @@ export component ImportDialog inherits Rectangle {
                                             overflow: elide;
                                         }
                                         Text {
-                                            text: account.status == "already-added" ? @tr("Already in Flectar Mail")
+                                            text: account.status == "already-added" ? @tr("Already in emailOO")
                                                 : account.status == "unsupported" ? @tr("Cannot be imported")
                                                 : account.sign-in == "google" ? @tr("Sign in with Google after import")
                                                 : account.sign-in == "microsoft" ? @tr("Sign in with Microsoft after import")
@@ -499,7 +499,7 @@ export component ImportDialog inherits Rectangle {
                         wrap: word-wrap;
                     }
                     if AccountImport.already-present > 0 : Text {
-                        text: @tr("One account was already in Flectar Mail and was left unchanged." | "{n} accounts were already in Flectar Mail and were left unchanged." % AccountImport.already-present);
+                        text: @tr("One account was already in emailOO and was left unchanged." | "{n} accounts were already in emailOO and were left unchanged." % AccountImport.already-present);
                         color: AppTheme.secondary;
                         font-size: TypeScale.secondary;
                         wrap: word-wrap;

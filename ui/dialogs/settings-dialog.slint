@@ -11,7 +11,7 @@ import { AccountRow, MailProfileRow, ProfileMemberRow, StorageUsageRow } from ".
 import { Avatar } from "../components/avatar.slint";
 import { Button } from "../components/button.slint";
 import { ConfirmationDialog } from "../components/confirmation-dialog.slint";
-import { IconButton, LineEdit, RadioButton, Switch } from "../components/controls.slint";
+import { IconButton, LineEdit, RadioButton, Switch, TextEdit } from "../components/controls.slint";
 import { CopyableDiagnostic } from "../components/copyable-diagnostic.slint";
 import { FocusVisibleScope } from "../components/focus-visible-scope.slint";
 import { OnScreenSurface } from "../components/on-screen-surface.slint";
@@ -209,7 +209,7 @@ component StorageUsageCard inherits Rectangle {
         width: parent.width - 40px;
         height: max(22px, self.preferred-height);
         text: root.loading && !root.loaded ? @tr("Calculating local storage…")
-            : root.loaded ? @tr("{} used by Flectar Mail", root.total)
+            : root.loaded ? @tr("{} used by emailOO", root.total)
             : root.error == "failed" ? @tr("Storage usage could not be calculated. Try again.")
             : @tr("Open Storage to calculate local usage.");
         color: root.secondary-text;
@@ -482,6 +482,13 @@ export component SettingsDialog inherits Rectangle {
     in-out property <string> time_format: "automatic";
     in property <string> time_format_sample: "13:30";
     in-out property <bool> monochrome_sidebar_icons: false;
+    in-out property <string> shortcuts_text: "";
+    in-out property <string> reply_mode: "window";
+    in-out property <string> nextcloud_url: "";
+    in-out property <string> nextcloud_username: "";
+    in-out property <string> nextcloud_password: "";
+    in-out property <string> nextcloud_local_path: "";
+    in-out property <string> nextcloud_remote_path: "/";
     in-out property <bool> notifications_enabled: true;
     in-out property <bool> notification_sound_enabled: true;
     in-out property <string> notification_scope: "important";
@@ -582,6 +589,10 @@ export component SettingsDialog inherits Rectangle {
     callback save_sync_interval(int);
     callback save_mark_read_on_open(bool);
     callback save_contact_discovery_settings(bool, bool, bool, bool);
+    callback save_shortcuts(string);
+    callback save_reply_mode(string);
+    callback save_account_download_scope(int, string, int);
+    callback save_nextcloud_settings(string, string, string, string, string);
     callback clear_contact_suggestions() -> bool;
     callback set_close_to_tray(bool);
     callback set_launch_at_login(bool);
@@ -638,6 +649,11 @@ export component SettingsDialog inherits Rectangle {
         @tr("1 year"),
         @tr("All mail"),
     ];
+    private property <[string]> download-scope-options: [
+        @tr("Only headers"),
+        @tr("Headers and body"),
+        @tr("Everything, including attachments"),
+    ];
     private property <[string]> keep-on-server-options: [
         @tr("Always"),
         @tr("Until deleted here"),
@@ -687,7 +703,7 @@ export component SettingsDialog inherits Rectangle {
     }
 
     pure function settings-section-visible(section: string) -> bool {
-        // emailOO: Flectar's paid Services page is not part of this fork.
+        // emailOO: emailOO's paid Services page is not part of this fork.
         if section == "Services" { return false; }
         if root.settings-search-query == "" { return true; }
         let terms = section == "General"
@@ -787,6 +803,18 @@ export component SettingsDialog inherits Rectangle {
                 : index == 1 ? "threeMonths"
                 : index == 2 ? "sixMonths"
                 : index == 3 ? "oneYear" : "all",
+        );
+    }
+
+    pure function download-scope-index(value: string) -> int {
+        return value == "headers" ? 0 : value == "everything" ? 2 : 1;
+    }
+
+    function select-download-scope(account-id: int, index: int, limit-mb: int) {
+        root.save_account_download_scope(
+            account-id,
+            index == 0 ? "headers" : index == 2 ? "everything" : "body",
+            limit-mb,
         );
     }
 
@@ -1173,12 +1201,23 @@ export component SettingsDialog inherits Rectangle {
                                     SettingsSelectRow {
                                         compact: root.compact;
                                         title: @tr("Display language");
-                                        description: root.language_mode == "system" ? @tr("Follow your device language when a translation is available.") : @tr("Choose the language used throughout Flectar Mail.");
+                                        description: root.language_mode == "system" ? @tr("Follow your device language when a translation is available.") : @tr("Choose the language used throughout emailOO.");
                                         choices: root.language-options;
                                         selected-index: root.language-index;
                                         title-color: root.body-text;
                                         description-color: root.faint-text;
                                         selected(index, value) => { root.select-language(index); }
+                                    }
+                                    Rectangle { height: 1px; background: root.border-subtle; }
+                                    SettingsSelectRow {
+                                        compact: root.compact;
+                                        title: @tr("Replies");
+                                        description: @tr("Choose where Reply, Reply all and Forward open.");
+                                        choices: [@tr("In a new window"), @tr("In the main window")];
+                                        selected-index: root.reply_mode == "tab" ? 1 : 0;
+                                        title-color: root.body-text;
+                                        description-color: root.faint-text;
+                                        selected(index, value) => { root.save_reply_mode(index == 1 ? "tab" : "window"); }
                                     }
                                     Rectangle { height: 1px; background: root.border-subtle; }
                                     SettingsSelectRow {
@@ -1291,7 +1330,7 @@ export component SettingsDialog inherits Rectangle {
                                     VerticalBox {
                                         spacing: 5px;
                                         tray-title := Text { height: max(20px, self.preferred-height); text: @tr("Keep running in system tray"); color: root.heading; font-size: TypeScale.subtitle; font-weight: 700; }
-                                        tray-description := Text { height: max(17px, self.preferred-height); text: @tr("Closing the window hides Flectar Mail while mail continues syncing."); color: root.faint-text; font-size: TypeScale.secondary; wrap: word-wrap; }
+                                        tray-description := Text { height: max(17px, self.preferred-height); text: @tr("Closing the window hides emailOO while mail continues syncing."); color: root.faint-text; font-size: TypeScale.secondary; wrap: word-wrap; }
                                         tray-note := Text { height: max(16px, self.preferred-height); text: @tr("Disabled by default; Quit from the tray menu stops the app."); color: root.faint-text; font-size: TypeScale.caption; wrap: word-wrap; }
                                     }
                                     Rectangle { horizontal-stretch: 1; }
@@ -1319,7 +1358,7 @@ export component SettingsDialog inherits Rectangle {
                                     VerticalBox {
                                         spacing: 5px;
                                         login-title := Text { height: max(20px, self.preferred-height); text: @tr("Start automatically"); color: root.heading; font-size: TypeScale.subtitle; font-weight: 700; }
-                                        login-description := Text { height: max(17px, self.preferred-height); text: root.close_to_tray ? @tr("Starts Flectar Mail in the system tray when you sign in.") : @tr("Opens Flectar Mail when you sign in."); color: root.faint-text; font-size: TypeScale.secondary; wrap: word-wrap; }
+                                        login-description := Text { height: max(17px, self.preferred-height); text: root.close_to_tray ? @tr("Starts emailOO in the system tray when you sign in.") : @tr("Opens emailOO when you sign in."); color: root.faint-text; font-size: TypeScale.secondary; wrap: word-wrap; }
                                         login-note := Text { height: max(16px, self.preferred-height); text: @tr("Disabled by default; also listed in your system's startup apps."); color: root.faint-text; font-size: TypeScale.caption; wrap: word-wrap; }
                                     }
                                     Rectangle { horizontal-stretch: 1; }
@@ -1400,7 +1439,7 @@ export component SettingsDialog inherits Rectangle {
                                     SettingsSelectRow {
                                         compact: root.compact;
                                         title: @tr("Renderer");
-                                        description: RendererSettings.gpu-supported ? @tr("Changes take effect after restarting Flectar Mail.") : @tr("GPU mode is unavailable in this build.");
+                                        description: RendererSettings.gpu-supported ? @tr("Changes take effect after restarting emailOO.") : @tr("GPU mode is unavailable in this build.");
                                         choices: RendererSettings.gpu-supported ? [@tr("CPU — Low Memory"), @tr("GPU — WGPU")] : [@tr("CPU — Low Memory")];
                                         selected-index: RendererSettings.gpu-supported && RendererSettings.preferred == "gpu" ? 1 : 0;
                                         title-color: root.body-text;
@@ -1810,7 +1849,7 @@ export component SettingsDialog inherits Rectangle {
                                     ? sent-copy-row.y + sent-copy-row.height + (root.compact ? 10px : 8px)
                                     : self.has-server-copies
                                         ? server-copies-note.y + server-copies-note.height + (root.compact ? 10px : 8px)
-                                        : history-row.y + history-row.height + (root.compact ? 9px : 1px);
+                                        : download-row.y + download-row.height + (root.compact ? 9px : 1px);
                                 height: profile-row.y + profile-row.height + (root.compact ? (account.provider == "generic" ? 61px : 7px) : 13px);
                                 can-drop(event) => root.read_account_transfer(event.data) != "" ? DragAction.move : DragAction.none;
                                 dropped(event) => {
@@ -1975,16 +2014,34 @@ export component SettingsDialog inherits Rectangle {
                                         description-color: root.faint-text;
                                         selected(index, value) => { root.select-mail-history(account.id, index); }
                                     }
-                                    sent-copy-row := SettingsSelectRow {
-                                        visible: drop-target.has-sent-copy;
+                                    download-row := SettingsSelectRow {
                                         x: root.compact ? 24px : 32px;
                                         y: history-row.y + history-row.height + (root.compact ? 7px : 5px);
                                         width: parent.width - (root.compact ? 48px : 64px);
                                         compact: root.compact;
+                                        title: @tr("Download for offline use");
+                                        compact-description-height: 51px;
+                                        description: account.download_scope == "headers"
+                                            ? @tr("Only headers are kept. Bodies download when you open a message.")
+                                            : account.download_scope == "everything"
+                                                ? @tr("Bodies and attachments are kept on this device, up to 10 MB per attachment.")
+                                                : @tr("Bodies are kept on this device. Attachments download when you open them.");
+                                        choices: root.download-scope-options;
+                                        selected-index: root.download-scope-index(account.download_scope);
+                                        title-color: root.body-text;
+                                        description-color: root.faint-text;
+                                        selected(index, value) => { root.select-download-scope(account.id, index, 10); }
+                                    }
+                                    sent-copy-row := SettingsSelectRow {
+                                        visible: drop-target.has-sent-copy;
+                                        x: root.compact ? 24px : 32px;
+                                        y: download-row.y + download-row.height + (root.compact ? 7px : 5px);
+                                        width: parent.width - (root.compact ? 48px : 64px);
+                                        compact: root.compact;
                                         title: @tr("Sent copies");
                                         compact-description-height: 51px;
-                                        description: @tr("Choose who saves sent mail. Use Flectar if your server does not save a copy.");
-                                        choices: [@tr("Provider default"), @tr("Server saves a copy"), @tr("Flectar saves a copy")];
+                                        description: @tr("Choose who saves sent mail. Use emailOO if your server does not save a copy.");
+                                        choices: [@tr("Provider default"), @tr("Server saves a copy"), @tr("emailOO saves a copy")];
                                         selected-index: account.sent_copy_policy == "server" ? 1 : account.sent_copy_policy == "client" ? 2 : 0;
                                         title-color: root.body-text;
                                         description-color: root.faint-text;
@@ -1995,14 +2052,14 @@ export component SettingsDialog inherits Rectangle {
                                     server-copies-row := SettingsSelectRow {
                                         visible: drop-target.has-server-copies;
                                         x: root.compact ? 24px : 32px;
-                                        y: history-row.y + history-row.height + (root.compact ? 7px : 5px);
+                                        y: download-row.y + download-row.height + (root.compact ? 7px : 5px);
                                         width: parent.width - (root.compact ? 48px : 64px);
                                         compact: root.compact;
                                         title: @tr("Keep mail on the server");
                                         compact-description-height: 51px;
                                         description: account.keep_on_server == "untilDeleted" ? @tr("Mail you delete here is removed from the server too.")
                                             : account.keep_on_server == "untilDownloaded" ? @tr("Mail is removed from the server once it's on this device.")
-                                            : account.keep_on_server == "always" ? @tr("Flectar Mail never removes mail from the server.")
+                                            : account.keep_on_server == "always" ? @tr("emailOO never removes mail from the server.")
                                             : @tr("Mail is removed after this time, or once deleted here.");
                                         choices: root.keep-on-server-options;
                                         selected-index: root.keep-on-server-index(account.keep_on_server);
@@ -2139,7 +2196,7 @@ export component SettingsDialog inherits Rectangle {
                             SettingsPageTitle { label: @tr("Storage"); title-color: root.title-color; }
                             Text {
                                 height: max(root.compact ? 34px : 20px, self.preferred-height);
-                                text: @tr("See what Flectar Mail stores locally and manage the data on this device.");
+                                text: @tr("See what emailOO stores locally and manage the data on this device.");
                                 color: root.secondary-text;
                                 font-size: TypeScale.secondary;
                                 vertical-alignment: center;
@@ -2211,6 +2268,27 @@ export component SettingsDialog inherits Rectangle {
                             }
 
                             Rectangle {
+                                height: nextcloud-box.preferred-height;
+                                vertical-stretch: 0;
+                                background: root.surface;
+                                border-radius: 8px;
+                                border-width: 1px;
+                                border-color: root.border-subtle;
+                                nextcloud-box := VerticalBox {
+                                    padding: 12px;
+                                    spacing: 8px;
+                                    Text { text: @tr("Nextcloud links"); color: root.heading; font-size: TypeScale.secondary; font-weight: 600; }
+                                    Text { text: @tr("Insert public share links instead of attaching files stored in your Nextcloud folder. Use an app password."); color: root.faint-text; font-size: TypeScale.caption; wrap: word-wrap; height: max(30px, self.preferred-height); }
+                                    LineEdit { text <=> root.nextcloud_url; placeholder-text: @tr("Server URL (https://cloud.example.com)"); input-label: @tr("Nextcloud server"); }
+                                    LineEdit { text <=> root.nextcloud_username; placeholder-text: @tr("Username"); input-label: @tr("Nextcloud user"); }
+                                    LineEdit { text <=> root.nextcloud_password; placeholder-text: @tr("App password (leave blank to keep the saved one)"); input-label: @tr("Nextcloud app password"); }
+                                    LineEdit { text <=> root.nextcloud_local_path; placeholder-text: @tr("Local folder (e.g. /Users/me/Nextcloud)"); input-label: @tr("Nextcloud local folder"); }
+                                    LineEdit { text <=> root.nextcloud_remote_path; placeholder-text: @tr("Remote path (e.g. /)"); input-label: @tr("Nextcloud remote path"); }
+                                    HorizontalBox { alignment: end; Button { text: @tr("Save Nextcloud"); clicked => { root.save_nextcloud_settings(root.nextcloud_url, root.nextcloud_username, root.nextcloud_password, root.nextcloud_local_path, root.nextcloud_remote_path); } } }
+                                }
+                            }
+
+                            Rectangle {
                                 height: delete-note.y + delete-note.height + (root.compact ? 74px : 22px);
                                 vertical-stretch: 0;
                                 delete-card := SettingsCard { title: @tr("Delete all local data"); description: @tr("Remove accounts, downloaded mail, calendars, contacts, preferences, and credentials from this device."); surface: root.surface; card-border-color: root.border-subtle; heading: root.heading; secondary-text: root.faint-text; }
@@ -2230,7 +2308,7 @@ export component SettingsDialog inherits Rectangle {
                         content-width: self.visible-width;
                         VerticalBox { x: root.compact ? 16px : max(24px, (notifications-scroll.visible-width - 920px) / 2); width: root.compact ? notifications-scroll.visible-width - 32px : min(920px, notifications-scroll.visible-width - 48px); padding-top: root.compact ? LayoutMetrics.compact-header-height + 16px : 28px; padding-bottom: 32px; spacing: 10px;
                             SettingsPageTitle { label: @tr("Notifications"); title-color: root.title-color; }
-                            Text { height: max(20px, self.preferred-height); text: @tr("Choose how Flectar Mail gets your attention."); color: root.secondary-text; font-size: TypeScale.secondary; vertical-alignment: center; wrap: word-wrap; }
+                            Text { height: max(20px, self.preferred-height); text: @tr("Choose how emailOO gets your attention."); color: root.secondary-text; font-size: TypeScale.secondary; vertical-alignment: center; wrap: word-wrap; }
                             Rectangle {
                                 height: max(root.compact ? 228px : 152px, self.preferred-height);
                                 vertical-stretch: 0;
@@ -2286,6 +2364,10 @@ export component SettingsDialog inherits Rectangle {
                                 ShortcutRow { title: @tr("Archive"); keys: [Shortcuts.archive]; title-color: root.body-text; separator-color: root.faint-text; }
                                 ShortcutRow { title: @tr("Move to spam"); keys: [Shortcuts.spam]; title-color: root.body-text; separator-color: root.faint-text; }
                                 ShortcutRow { title: @tr("Move to trash"); keys: [Shortcuts.trash]; title-color: root.body-text; separator-color: root.faint-text; }
+                                ShortcutRow { title: @tr("Reply"); keys: [Shortcuts.reply]; title-color: root.body-text; separator-color: root.faint-text; }
+                                ShortcutRow { title: @tr("Reply all"); keys: [Shortcuts.reply-all]; title-color: root.body-text; separator-color: root.faint-text; }
+                                ShortcutRow { title: @tr("Forward"); keys: [Shortcuts.forward]; title-color: root.body-text; separator-color: root.faint-text; }
+                                ShortcutRow { title: @tr("Mark as read / unread"); keys: [Shortcuts.mark-read, Shortcuts.mark-unread]; title-color: root.body-text; separator-color: root.faint-text; }
                             }
                             ShortcutSection { vertical-stretch: 0; title: @tr("Navigation"); surface: root.surface; card-border-color: root.border-subtle; heading: root.heading;
                                 ShortcutRow { title: @tr("Move between messages"); keys: [Shortcuts.previous-message, Shortcuts.next-message]; title-color: root.body-text; separator-color: root.faint-text; }
@@ -2299,6 +2381,14 @@ export component SettingsDialog inherits Rectangle {
                                 ShortcutRow { title: @tr("Zoom out"); keys: [Shortcuts.zoom-out]; title-color: root.body-text; separator-color: root.faint-text; }
                                 ShortcutRow { title: @tr("Reset zoom"); keys: [Shortcuts.zoom-reset]; title-color: root.body-text; separator-color: root.faint-text; }
                                 ShortcutRow { title: @tr("Caret browsing"); keys: [Shortcuts.caret-browsing]; title-color: root.body-text; separator-color: root.faint-text; }
+                            }
+                            Rectangle { height: 270px; background: root.surface; border-radius: 10px; border-width: 1px; border-color: root.border-subtle;
+                                VerticalBox { x: 20px; y: 16px; width: parent.width - 40px; spacing: 8px;
+                                    Text { text: @tr("Customize shortcuts"); color: root.heading; font-size: TypeScale.secondary; font-weight: 600; }
+                                    Text { text: @tr("One action per line, for example: archive = Ctrl+Shift+E. Use Ctrl, Shift, Alt and Meta plus a key name (A–Z, F1–F12, Return, Space, UpArrow…). Tab shortcuts are fixed."); color: root.faint-text; font-size: TypeScale.caption; wrap: word-wrap; height: max(30px, self.preferred-height); }
+                                    TextEdit { height: 140px; text <=> root.shortcuts_text; font-size: TypeScale.caption; }
+                                    HorizontalBox { alignment: end; Button { text: @tr("Save shortcuts"); clicked => { root.save_shortcuts(root.shortcuts_text); } } }
+                                }
                             }
                             if TabsUi.enabled : ShortcutSection { vertical-stretch: 0; title: @tr("Tabs"); surface: root.surface; card-border-color: root.border-subtle; heading: root.heading;
                                 ShortcutRow { title: @tr("New tab"); keys: [Shortcuts.new-tab]; title-color: root.body-text; separator-color: root.faint-text; }
@@ -2352,7 +2442,7 @@ export component SettingsDialog inherits Rectangle {
                             spacing: 12px;
 
                             SettingsPageTitle { label: @tr("Services"); title-color: root.title-color; }
-                            Text { height: max(root.compact ? 34px : 17px, self.preferred-height); text: @tr("Optional paid services from Flectar. Flectar Mail stays free and works without them."); color: root.secondary-text; font-size: TypeScale.secondary; vertical-alignment: center; wrap: word-wrap; }
+                            Text { height: max(root.compact ? 34px : 17px, self.preferred-height); text: @tr("Optional paid services from Flectar. emailOO stays free and works without them."); color: root.secondary-text; font-size: TypeScale.secondary; vertical-alignment: center; wrap: word-wrap; }
 
                             Rectangle {
                                 height: account-note.y + account-note.height + (root.compact ? 70px : 22px);
@@ -2385,7 +2475,7 @@ export component SettingsDialog inherits Rectangle {
                                     @tr("Themes, layout, and notification preferences"),
                                     @tr("Account credentials, encrypted on this device before upload"),
                                 ];
-                                note: @tr("Your messages stay with your mail provider. Sync only carries your Flectar Mail setup.");
+                                note: @tr("Your messages stay with your mail provider. Sync only carries your emailOO setup.");
                                 surface: root.surface;
                                 card-border-color: root.border-subtle;
                                 heading: root.heading;
@@ -2402,11 +2492,11 @@ export component SettingsDialog inherits Rectangle {
                                 icon: @image-url("../icons/lucide/filled/building.svg");
                                 title: @tr("Business email");
                                 tagline: @tr("Mailboxes on your own domain");
-                                description: @tr("Professional addresses such as you@yourcompany.com, hosted by Flectar.");
+                                description: @tr("Professional addresses such as you@yourcompany.com, hosted by emailOO.");
                                 features: [
                                     @tr("Connect a domain you already own"),
                                     @tr("Create and manage mailboxes for your team"),
-                                    @tr("New mailboxes appear in Flectar Mail automatically"),
+                                    @tr("New mailboxes appear in emailOO automatically"),
                                 ];
                                 note: @tr("Billed per mailbox.");
                                 surface: root.surface;
@@ -3145,7 +3235,7 @@ export component SettingsDialog inherits Rectangle {
             height: parent.height;
             open <=> root.delete_data_confirmation;
             title: @tr("Delete all local data?");
-            description: @tr("This removes every account, downloaded message, calendar, contact, preference, and credential stored by Flectar Mail on this device.");
+            description: @tr("This removes every account, downloaded message, calendar, contact, preference, and credential stored by emailOO on this device.");
             detail: root.has_device_mail
                 ? @tr("POP3 mail is stored only on this device and will be deleted. Mail and events on Gmail, Outlook, and IMAP servers will not be deleted.")
                 : @tr("Mail and events on Gmail, Outlook, and IMAP servers will not be deleted.");

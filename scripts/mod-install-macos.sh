@@ -9,8 +9,10 @@ profile="${1:-debug}"
 project_dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 target_dir="${CARGO_TARGET_DIR:-$project_dir/target}"
 binary="$target_dir/$profile/flectar-mail"
-case "$(uname -m)" in
-  arm64) arch_dir="apple-silicon" ;;
+architecture="${EMAILOO_ARCH:-$(uname -m)}"
+case "$architecture" in
+  universal) arch_dir="universal" ;;
+  arm64|aarch64) arch_dir="apple-silicon" ;;
   *) arch_dir="intel" ;;
 esac
 staging="$target_dir/macos-$profile"
@@ -25,7 +27,7 @@ version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project_dir/Cargo.toml" | he
 base="$(git -C "$project_dir" rev-parse --short main 2>/dev/null || echo unknown)"
 commit="$(git -C "$project_dir" rev-parse --short HEAD)"
 
-bash "$project_dir/scripts/package-macos.sh" "$binary" "$staging" >/dev/null
+bash "$project_dir/scripts/package-macos.sh" "$binary" "$staging" "$architecture" >/dev/null
 app="$staging/Flectar Mail.app"
 plist="$app/Contents/Info.plist"
 # emailOO icon (SuitOO style) replaces the upstream artwork.

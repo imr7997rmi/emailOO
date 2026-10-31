@@ -11,6 +11,10 @@ export component RecipientRow inherits Rectangle {
     in property <color> placeholder-color;
     in property <color> focus-color;
     in property <bool> suggestions-open: false;
+    in property <bool> boxed: false;
+    in property <bool> show-label: true;
+    in property <color> box-background-color: transparent;
+    in property <color> box-border-color: #cccdca;
     out property <bool> has-focus: field.has-focus;
     callback edited(string);
     callback move-suggestion(int);
@@ -20,12 +24,18 @@ export component RecipientRow inherits Rectangle {
     forward-focus: field;
 
     height: 40px;
-    background: root.background-color;
+    background: root.boxed ? root.box-background-color : root.background-color;
+    border-width: root.boxed ? 1px : 0px;
+    border-radius: root.boxed ? 6px : 0px;
+    border-color: root.boxed
+        ? (field.has-focus ? root.focus-color : root.box-border-color)
+        : transparent;
 
     row-label := Text {
         x: 12px;
         width: max(34px, self.preferred-width);
         height: parent.height;
+        visible: root.show-label;
         text: root.label;
         color: field.has-focus ? root.focus-color : root.label-color;
         font-size: TypeScale.secondary;
@@ -34,7 +44,7 @@ export component RecipientRow inherits Rectangle {
     }
 
     Text {
-        x: row-label.x + row-label.width + 4px;
+        x: row-label.x + (root.show-label ? row-label.width + 4px : 0px);
         width: max(0px, parent.width - self.x - root.right-padding);
         height: parent.height;
         visible: root.text == "";
@@ -46,7 +56,7 @@ export component RecipientRow inherits Rectangle {
     }
 
     field := TextInput {
-        x: row-label.x + row-label.width + 4px;
+        x: row-label.x + (root.show-label ? row-label.width + 4px : 0px);
         width: max(0px, parent.width - self.x - root.right-padding);
         height: parent.height;
         text <=> root.text;

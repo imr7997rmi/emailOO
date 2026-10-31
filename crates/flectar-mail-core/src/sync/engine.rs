@@ -3219,6 +3219,11 @@ async fn body_worker(
         if settings_rx.has_changed().unwrap_or(false) {
             break;
         }
+        // Headers-only accounts download bodies when a message is opened
+        // instead of backfilling them here (#12).
+        if settings_rx.borrow().download_scope == crate::models::DownloadScope::Headers {
+            break;
+        }
         let chunk = queue.lock().await.pop_front();
         let Some(chunk) = chunk else { break };
         let chunk_started = std::time::Instant::now();
@@ -3235,6 +3240,46 @@ async fn body_worker(
                         messages_per_second = rate,
                         "body backfill: selective batch cached"
                     );
+                }
+                // "Everything" also keeps attachments within the size limit.
+                {
+                    let scope = settings_rx.borrow().download_scope;
+                    let limit = settings_rx
+                        .borrow()
+                        .download_attachment_limit_mb
+                        .saturating_mul(1024 * 1024);
+                    if scope == crate::models::DownloadScope::Everything {
+                        let message_ids = chunk
+                            .items
+                            .iter()
+                            .map(|(message_id, _)| *message_id)
+                            .collect::<Vec<_>>();
+                        let attachment_ids = ctx
+                            .db
+                            .read(move |conn| {
+                                let mut out = Vec::new();
+                                for message_id in message_ids {
+                                    let mut statement = conn.prepare(
+                                        "SELECT id FROM attachments WHERE message_id = ?1 \
+                                         AND is_inline = 0 AND file_path IS NULL \
+                                         AND (size IS NULL OR size <= ?2)",
+                                    )?;
+                                    let rows = statement.query_map(
+                                        rusqlite::params![message_id, limit],
+                                        |row| row.get::<_, i64>(0),
+                                    )?;
+                                    for row in rows {
+                                        out.push(row?);
+                                    }
+                                }
+                                Ok::<_, crate::error::CoreError>(out)
+                            })
+                            .await
+                            .unwrap_or_default();
+                        for attachment_id in attachment_ids {
+                            let _ = fetch_attachment_bytes(&ctx, &mut session, attachment_id).await;
+                        }
+                    }
                 }
                 // Live "Sync x/total": one COUNT per chunk, not per message.
                 let progress_cutoff = settings_rx.borrow().mail_history.cutoff_ms_at(now_ms());

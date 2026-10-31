@@ -733,6 +733,21 @@ pub(crate) fn apply_settings(app: &AppWindow, settings: &Settings) {
         _ => 5,
     });
     app.set_mark_read_on_open(settings.mark_read_on_open);
+    app.set_shortcuts_text(crate::shortcuts::describe(&settings.shortcuts).into());
+    app.set_reply_mode(settings.reply_mode.clone().into());
+    crate::shortcuts::apply(app, &settings.shortcuts);
+    let (nextcloud_local, nextcloud_remote) = if settings.nextcloud_local_path.trim().is_empty() {
+        flectar_mail_core::nextcloud::detect_folder().unwrap_or_default()
+    } else {
+        (
+            settings.nextcloud_local_path.clone(),
+            settings.nextcloud_remote_path.clone(),
+        )
+    };
+    app.set_nextcloud_url(settings.nextcloud_url.clone().into());
+    app.set_nextcloud_username(settings.nextcloud_username.clone().into());
+    app.set_nextcloud_local_path(nextcloud_local.into());
+    app.set_nextcloud_remote_path(nextcloud_remote.into());
     app.set_collect_outgoing_contacts(settings.collect_outgoing_contacts);
     app.set_collect_incoming_contacts(settings.collect_incoming_contacts);
     app.set_contact_suggest_all_accounts(settings.contact_suggest_all_accounts);

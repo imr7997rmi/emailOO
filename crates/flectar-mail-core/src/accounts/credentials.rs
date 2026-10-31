@@ -35,6 +35,8 @@ pub enum Slot {
     /// CardDAV app password. Kept separate because a user may configure
     /// different DAV providers for calendars and contacts.
     CarddavPassword,
+    /// Nextcloud app password for public share links (account id 0).
+    NextcloudPassword,
 }
 
 impl Slot {
@@ -49,6 +51,7 @@ impl Slot {
             Slot::AiApiKey => "ai_api_key",
             Slot::CaldavPassword => "caldav_password",
             Slot::CarddavPassword => "carddav_password",
+            Slot::NextcloudPassword => "nextcloud_password",
         }
     }
 }
