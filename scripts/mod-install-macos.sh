@@ -70,30 +70,41 @@ else
   codesign --force --deep --sign - "$app" >/dev/null 2>&1
 fi
 
-osascript -e "quit app \"$app_name\"" >/dev/null 2>&1 || true
-for _ in $(seq 1 20); do
-  pgrep -f "$app_name.app/Contents/MacOS" >/dev/null || break
-  sleep 1
-done
-
 mkdir -p "$build_dir"
-for destination in "$build_dir/$app_name.app" "/Applications/$app_name.app"; do
-  rm -rf "$destination"
-  ditto "$app" "$destination"
-  codesign --verify --deep "$destination"
-  echo "installed: $destination"
-done
-# Keep Launch Services on the /Applications copy only.
-lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
-"$lsregister" -u "$build_dir/$app_name.app" >/dev/null 2>&1 || true
-open "/Applications/$app_name.app"
+if [[ "${EMAILOO_CI:-0}" == "1" ]]; then
+  # CI: only produce the named .app that will be zipped and published.
+  rm -rf "$build_dir/$app_name.app"
+  ditto "$app" "$build_dir/$app_name.app"
+  codesign --verify --deep "$build_dir/$app_name.app"
+  echo "packaged: $build_dir/$app_name.app"
+else
+  osascript -e "quit app \"$app_name\"" >/dev/null 2>&1 || true
+  for _ in $(seq 1 20); do
+    pgrep -f "$app_name.app/Contents/MacOS" >/dev/null || break
+    sleep 1
+  done
+
+  for destination in "$build_dir/$app_name.app" "/Applications/$app_name.app"; do
+    rm -rf "$destination"
+    ditto "$app" "$destination"
+    codesign --verify --deep "$destination"
+    echo "installed: $destination"
+  done
+  # Keep Launch Services on the /Applications copy only.
+  lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+  "$lsregister" -u "$build_dir/$app_name.app" >/dev/null 2>&1 || true
+  open "/Applications/$app_name.app"
+fi
 
 # Publish the build on GitHub Releases: one rolling pre-release per branch
 # ("build-<branch>") with one zip per architecture, replaced on every build.
 # EMAILOO_PUBLISH=0 skips it.
 if [[ "${EMAILOO_PUBLISH:-1}" != 0 ]] && command -v gh >/dev/null 2>&1; then
   repo="$(git -C "$project_dir" remote get-url origin | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')"
-  branch="$(git -C "$project_dir" rev-parse --abbrev-ref HEAD)"
+  branch="${EMAILOO_BRANCH:-$(git -C "$project_dir" rev-parse --abbrev-ref HEAD)}"
+  if [ "$branch" = "HEAD" ] && [ -n "${GITHUB_REF_NAME:-}" ]; then
+    branch="$GITHUB_REF_NAME"
+  fi
   tag="build-$(echo "$branch" | tr '/' '-')"
   asset="$staging/emailOO${variant:+-$variant}-$arch_dir-$profile.zip"
   rm -f "$asset"
