@@ -67,6 +67,7 @@ mod tabs;
 mod theme;
 mod ui_dispatch;
 mod ui_message;
+mod update;
 mod ai_controller;
 mod icloud_sync;
 mod message_window;
@@ -1599,6 +1600,7 @@ pub fn run(platform: PlatformContext) -> Result<(), Box<dyn std::error::Error>> 
         Some(label) => format!("{} · {label}", env!("CARGO_PKG_VERSION")).into(),
         None => env!("CARGO_PKG_VERSION").into(),
     });
+    update::register(&app);
     app.on_settings_search_matches(|haystack, query| {
         let query = query.to_string().trim().to_lowercase();
         query.is_empty() || haystack.to_string().to_lowercase().contains(&query)

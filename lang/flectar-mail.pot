@@ -6642,3 +6642,18 @@ msgstr ""
 
 msgid "Forward in a tab"
 msgstr ""
+
+msgid "Update"
+msgstr ""
+
+msgid "Update now"
+msgstr ""
+
+msgid "Updates"
+msgstr ""
+
+msgid "Check for updates"
+msgstr ""
+
+msgid "Version {} · build {}"
+msgstr ""

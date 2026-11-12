@@ -40,6 +40,7 @@ import { ComposeDialog } from "dialogs/compose-dialog.slint";
 import { FolderDialog } from "dialogs/folder-dialog.slint";
 import { ConfirmationDialog } from "components/confirmation-dialog.slint";
 import { SettingsDialog } from "dialogs/settings-dialog.slint";
+import { UpdateDialog } from "dialogs/update-dialog.slint";
 import { AccountImport, ImportDialog } from "dialogs/import-dialog.slint";
 export { AccountImport, ImportAccountRow, ImportFailureRow, ImportFindingRow, ImportProfileRow } from "dialogs/import-dialog.slint";
 export { ThemeDraft } from "components/theme-editor.slint";
@@ -1111,6 +1112,20 @@ export component AppWindow inherits Window {
     in property <bool> print_supported: true;
     in property <bool> document_apis_supported: true;
     in property <string> app-version: "";
+    in property <string> app-build: "";
+    in-out property <bool> update_dialog_open: false;
+    in property <string> update_dialog_title: "";
+    in property <string> update_dialog_message: "";
+    in property <string> update_dialog_notes: "";
+    in property <string> update_dialog_progress_text: "";
+    in property <float> update_dialog_progress: 0;
+    in property <bool> update_dialog_busy: false;
+    in property <bool> update_dialog_available: false;
+    in property <bool> update_dialog_error: false;
+    callback check_updates();
+    callback update_install();
+    callback update_cancel();
+    callback update_dialog_close();
 
     // Neutral, low-chrome surfaces keep the message content visually primary.
     // Interactive controls come from Slint's desktop widget set.
@@ -1874,6 +1889,8 @@ export component AppWindow inherits Window {
             oauth_settings_saving: root.oauth_settings_saving;
             sync_status: root.sync_status;
             app-version: root.app-version;
+            app-build: root.app-build;
+            check_updates => { root.check_updates(); }
             storage_loading: root.storage_loading;
             storage_loaded: root.storage_loaded;
             storage_total: root.storage_total;
@@ -2415,6 +2432,31 @@ export component AppWindow inherits Window {
         width: root.content-width;
         height: root.content-height;
         compact: root.compact-layout;
+    }
+
+    if root.update_dialog_open : UpdateDialog {
+        x: root.content-x;
+        y: root.content-y;
+        width: root.content-width;
+        height: root.content-height;
+        open <=> root.update_dialog_open;
+        title: root.update_dialog_title;
+        message: root.update_dialog_message;
+        notes: root.update_dialog_notes;
+        progress-text: root.update_dialog_progress_text;
+        progress: root.update_dialog_progress;
+        busy: root.update_dialog_busy;
+        available: root.update_dialog_available;
+        error: root.update_dialog_error;
+        surface: root.surface;
+        dialog-border-color: root.border;
+        title-color: root.title-color;
+        body-color: root.body-text;
+        muted-color: root.muted-text;
+        accent: root.accent;
+        close => { root.update_dialog_close(); }
+        update => { root.update_install(); }
+        cancel => { root.update_cancel(); }
     }
 
     // Below the tab strip and inside the safe area, like the dialogs.

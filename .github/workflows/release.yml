@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    branches: [main, mejoras]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Versión desde la etiqueta
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i '' "s/^version = .*/version = \"$VERSION\"/" Cargo.toml
+
+      - name: Compilar app universal
+        env:
+          EMAILOO_CI: "1"
+          EMAILOO_BUILD_DIR: dist
+          EMAILOO_PUBLISH: "0"
+          EMAILOO_VARIANT: ""
+        run: ./scripts/mod-build-universal-macos.sh release
+
+      - name: Preparar app
+        run: |
+          cp -R dist/universal/emailOO.app dist/emailOO.app
+
+      - name: Publicar feed y ZIP en el servidor
+        env:
+          NIVVOO_SSH_KEY: ${{ secrets.NIVVOO_SSH_KEY }}
+        run: |
+          printf '%s\n' "$NIVVOO_SSH_KEY" > "$RUNNER_TEMP/nivvoo_key"
+          chmod 600 "$RUNNER_TEMP/nivvoo_key"
+          NIVVOO_SSH_KEY="$RUNNER_TEMP/nivvoo_key" ./scripts/publish-update.sh emailOO dist/emailOO.app
+
+      - name: Publicar feed y ZIP en el repo público
+        uses: actions/checkout@v4
+        with:
+          repository: imr7997rmi/nivvoo-apps
+          ssh-key: ${{ secrets.APPS_DEPLOY_KEY }}
+          path: apps-repo
+          ref: main
+
+      - name: Actualizar repo público
+        run: |
+          cp dist/emailOO-latest.zip dist/emailOO-latest.json apps-repo/
+          cd apps-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add emailOO-latest.zip emailOO-latest.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "emailOO ${{ github.ref_name }}"
+          git push origin main
+
+      - name: Publicar release de versión
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: emailOO ${{ github.ref_name }}
+          files: dist/emailOO-latest.zip
+          generate_release_notes: true
+
+      - name: Mover etiqueta latest
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/mejoras'
+        run: |
+          git tag -f latest "$GITHUB_SHA"
+          git push -f origin latest
+
+      - name: Publicar última build
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/mejoras'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "emailOO — última build"
+          prerelease: true
+          files: dist/emailOO-latest.zip
+          body: "Build automática de ${{ github.ref_name }}: ${{ github.sha }}"

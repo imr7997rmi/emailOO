@@ -6867,3 +6867,18 @@ msgstr "Responder a todos en una pestaña"
 
 msgid "Forward in a tab"
 msgstr "Reenviar en una pestaña"
+
+msgid "Update"
+msgstr "Actualización"
+
+msgid "Update now"
+msgstr "Actualizar ahora"
+
+msgid "Updates"
+msgstr "Actualizaciones"
+
+msgid "Check for updates"
+msgstr "Comprobar actualizaciones"
+
+msgid "Version {} · build {}"
+msgstr "Versión {} · compilación {}"

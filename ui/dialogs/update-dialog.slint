@@ -1,0 +1,120 @@
+import { HorizontalBox, VerticalBox } from "std-widgets.slint";
+import { Button } from "../components/button.slint";
+import { TypeScale } from "../typography.slint";
+
+// Update prompt and download progress. The dialog belongs to the application
+// overlay layer so it stays centered above every workspace.
+export component UpdateDialog inherits Rectangle {
+    in-out property <bool> open: false;
+    in property <string> title: @tr("Update");
+    in property <string> message: "";
+    in property <string> notes: "";
+    in property <string> progress-text: "";
+    in property <float> progress: 0;
+    in property <bool> busy: false;
+    in property <bool> available: false;
+    in property <bool> error: false;
+    in property <color> surface;
+    in property <color> dialog-border-color;
+    in property <color> title-color;
+    in property <color> body-color;
+    in property <color> muted-color;
+    in property <color> accent;
+    callback close;
+    callback update;
+    callback cancel;
+
+    visible: root.open;
+    background: #00000088;
+    z: 30000;
+    accessible-role: groupbox;
+    accessible-label: root.title;
+
+    // Consume pointer input over the whole scrim.
+    TouchArea { enabled: root.open; }
+
+    panel := Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        width: min(520px, parent.width - 32px);
+        height: max(260px, dialog-content.preferred-height);
+        border-radius: 12px;
+        border-width: 1px;
+        border-color: root.dialog-border-color;
+        background: root.surface;
+        drop-shadow-blur: 24px;
+        drop-shadow-offset-y: 8px;
+        drop-shadow-color: #00000055;
+
+        dialog-content := VerticalBox {
+            padding-top: 22px;
+            padding-right: 22px;
+            padding-bottom: 20px;
+            padding-left: 22px;
+            spacing: 12px;
+
+            Text {
+                text: root.title;
+                color: root.title-color;
+                font-size: TypeScale.heading;
+                font-weight: 700;
+                wrap: word-wrap;
+            }
+
+            Text {
+                text: root.message;
+                color: root.body-color;
+                font-size: TypeScale.secondary;
+                wrap: word-wrap;
+            }
+
+            if root.notes != "" : Text {
+                text: root.notes;
+                color: root.muted-color;
+                font-size: TypeScale.caption;
+                wrap: word-wrap;
+            }
+
+            if root.busy : Rectangle {
+                height: 10px;
+                border-radius: 5px;
+                background: root.accent.with-alpha(0.16);
+
+                Rectangle {
+                    width: max(0px, min(parent.width, parent.width * root.progress));
+                    height: parent.height;
+                    border-radius: 5px;
+                    background: root.accent;
+                }
+            }
+
+            if root.progress-text != "" : Text {
+                text: root.progress-text;
+                color: root.muted-color;
+                font-size: TypeScale.caption;
+                wrap: word-wrap;
+            }
+
+            Rectangle { vertical-stretch: 1; }
+
+            HorizontalBox {
+                height: 34px;
+                spacing: 8px;
+                Rectangle { horizontal-stretch: 1; }
+                if root.busy : Button {
+                    text: @tr("Cancel");
+                    clicked => { root.cancel(); }
+                }
+                if !root.busy && root.available : Button {
+                    text: @tr("Update now");
+                    primary: true;
+                    clicked => { root.update(); }
+                }
+                if !root.busy : Button {
+                    text: @tr("Close");
+                    clicked => { root.close(); }
+                }
+            }
+        }
+    }
+}

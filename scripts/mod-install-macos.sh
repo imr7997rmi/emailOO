@@ -24,6 +24,7 @@ app_name="emailOO${variant:+ $variant}"
 bundle_id="com.nivvoo.emailoo${variant:+.$(echo "$variant" | tr '[:upper:]' '[:lower:]')}"
 
 version="$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project_dir/Cargo.toml" | head -1)"
+build="$(date +%Y%m%d.%H%M)"
 base="$(git -C "$project_dir" rev-parse --short main 2>/dev/null || echo unknown)"
 commit="$(git -C "$project_dir" rev-parse --short HEAD)"
 
@@ -47,8 +48,8 @@ fi
   -c "Set :CFBundleIdentifier $bundle_id" \
   -c "Set :CFBundleName $app_name" \
   -c "Set :CFBundleDisplayName $app_name" \
-  -c "Set :CFBundleShortVersionString $version mod" \
-  -c "Set :CFBundleVersion $commit" \
+  -c "Set :CFBundleShortVersionString $version" \
+  -c "Set :CFBundleVersion $build" \
   "$plist"
 /usr/libexec/PlistBuddy -c "Delete :NSHumanReadableCopyright" "$plist" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string imr7997rmi · base $base" "$plist"

@@ -453,6 +453,7 @@ export component SettingsDialog inherits Rectangle {
     in property <bool> oauth_settings_saving: false;
     in property <string> sync_status: "";
     in property <string> app-version: "";
+    in property <string> app-build: "";
     in property <bool> storage_loading: false;
     in property <bool> storage_loaded: false;
     in property <string> storage_total: "";
@@ -596,6 +597,7 @@ export component SettingsDialog inherits Rectangle {
     callback clear_contact_suggestions() -> bool;
     callback set_close_to_tray(bool);
     callback set_launch_at_login(bool);
+    callback check_updates();
     callback sync_mail();
     callback sync_account(int);
     callback delete_account(int);
@@ -1066,6 +1068,31 @@ export component SettingsDialog inherits Rectangle {
                                         selected(index, value) => {
                                             MessageColors.choose(index == 1 ? "light" : index == 2 ? "dark" : "system");
                                         }
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                height: max(root.compact ? 132px : 104px, self.preferred-height);
+                                background: root.surface;
+                                border-radius: 8px;
+                                border-width: 1px;
+                                border-color: root.border-subtle;
+                                VerticalBox {
+                                    padding: 16px;
+                                    spacing: 6px;
+                                    Text { text: @tr("Updates"); color: root.heading; font-size: TypeScale.subtitle; font-weight: 700; wrap: word-wrap; }
+                                    Text {
+                                        text: root.app-build == ""
+                                            ? @tr("Version {}", root.app-version)
+                                            : @tr("Version {} · build {}", root.app-version, root.app-build);
+                                        color: root.secondary-text;
+                                        font-size: TypeScale.secondary;
+                                        wrap: word-wrap;
+                                    }
+                                    Button {
+                                        text: @tr("Check for updates");
+                                        clicked => { root.check_updates(); }
                                     }
                                 }
                             }
