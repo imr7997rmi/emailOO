@@ -609,18 +609,31 @@ mod macos_menu {
             let Some(main) = app.mainMenu() else {
                 return;
             };
+            // `itemAtIndex` raises NSRangeException out of range, so every
+            // lookup stays inside the menu's item count. The application menu
+            // is the one whose submenu carries About/Services; if it is not
+            // there yet, fall back to the first item that has a submenu.
+            let count = main.numberOfItems();
             let mut application_menu = None;
-            for index in 0..main.numberOfItems() {
-                if let Some(item) = main.itemAtIndex(index)
-                    && let Some(submenu) = item.submenu()
-                    && submenu.itemWithTitle(&NSString::from_str("About emailOO")).is_some()
+            let mut first_with_submenu = None;
+            for index in 0..count {
+                let Some(item) = main.itemAtIndex(index) else {
+                    continue;
+                };
+                let Some(submenu) = item.submenu() else {
+                    continue;
+                };
+                if first_with_submenu.is_none() {
+                    first_with_submenu = Some(submenu.clone());
+                }
+                if submenu.itemWithTitle(&NSString::from_str("About emailOO")).is_some()
+                    || submenu.itemWithTitle(&NSString::from_str("Services")).is_some()
                 {
                     application_menu = Some(submenu);
                     break;
                 }
             }
-            let application_menu = application_menu
-                .or_else(|| main.itemAtIndex(1).and_then(|item| item.submenu()));
+            let application_menu = application_menu.or(first_with_submenu);
             let Some(application_menu) = application_menu else {
                 return;
             };
